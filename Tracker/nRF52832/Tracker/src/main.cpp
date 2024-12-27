@@ -218,16 +218,6 @@ uint64_t inv_icm20948_get_time_us(void)
 	return g_Timer.uSecond();
 }
 
-void inv_icm20948_sleep(int ms)
-{
-	msDelay(ms);
-}
-
-void inv_icm20948_sleep_us(int us)
-{
-	usDelay(us);
-}
-
 void system_off( void )
 {
 #ifdef NRF51

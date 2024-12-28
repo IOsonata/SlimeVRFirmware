@@ -31,6 +31,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>src/MotionSensor.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/MotionSensor.cpp</locationURI>
+		</link>
+		<link>
 			<name>src/SlimeTrackerESB.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-3-PROJECT_LOC/src/SlimeTrackerESB.cpp</locationURI>
@@ -44,6 +49,16 @@
 			<name>src/board.h</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/src/board.h</locationURI>
+		</link>
+		<link>
+			<name>src/mag_bmm350.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/IOsonata/src/sensors/mag_bmm350.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/mag_bmm350.h</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/IOsonata/include/sensors/mag_bmm350.h</locationURI>
 		</link>
 		<link>
 			<name>src/main.cpp</name>

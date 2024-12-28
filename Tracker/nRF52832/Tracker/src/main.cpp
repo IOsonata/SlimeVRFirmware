@@ -26,6 +26,7 @@
 #include "sensors/agm_invn_icm20948.h"
 #include "sensors/ag_bmi323.h"
 #include "sensors/mag_bmm350.h"
+
 #include "SlimeTrackerESB.h"
 
 #include "board.h"
@@ -116,10 +117,10 @@ static const SPICfg_t s_SpiCfg = {
     .DataSize = 8,      					// Data Size
     .MaxRetry = 5,      					// Max retries
     .BitOrder = SPIDATABIT_MSB,
-    .DataPhase = SPIDATAPHASE_SECOND_CLK, 	// Data phase
-    .ClkPol = SPICLKPOL_LOW,         		// clock polarity
+    .DataPhase = SPIDATAPHASE_FIRST_CLK, 	// Data phase
+    .ClkPol = SPICLKPOL_HIGH,         		// clock polarity
     .ChipSel = SPICSEL_AUTO,
-	.bDmaEn = true,						// DMA
+	.bDmaEn = false,						// DMA
 	.bIntEn = false,
     .IntPrio = APP_IRQ_PRIORITY_LOW,    	// Interrupt priority
 	.DummyByte = 0xff,
@@ -174,45 +175,7 @@ const static TimerCfg_t s_TimerCfg = {
 
 Timer g_Timer;
 
-static const AccelSensorCfg_t s_AccelCfg = {
-	.DevAddr = 0,// SPI CS index,
-	.OpMode = SENSOR_OPMODE_CONTINUOUS,
-	.Freq = 50000,
-	.Scale = 2,
-	.FltrFreq = 0,
-	.bInter = true,
-	.IntPol = DEVINTR_POL_LOW,
-};
-
-static const GyroSensorCfg_t s_GyroCfg = {
-	.DevAddr = 0,//BMI323_I2C_7BITS_DEVADDR,
-	.OpMode = SENSOR_OPMODE_CONTINUOUS,
-	.Freq = 50000,
-	.Sensitivity = 10,
-	.FltrFreq = 200,
-};
-
-static const MagSensorCfg_t s_MagCfg = {
-	.DevAddr = 0,
-	.OpMode = SENSOR_OPMODE_CONTINUOUS,//SENSOR_OPMODE_SINGLE,
-	.Freq = 50000,
-	.Precision = MAGSENSOR_PRECISION_HIGH,
-};
-
-#if BOARD == BLUEIO_TAG_EVIM
-
-AgmInvnIcm20948 g_MotSensor;
-MagSensor &g_Mag = g_MotSensor;
-
-#elif BOARD == BLYST_MOTION
-
-AgBmi323 g_MotSensor;
-//MagBmm350 g_Mag;
-
-#else
-#error "No board defined"
-#endif
-
+// Need this for icm20948
 uint64_t inv_icm20948_get_time_us(void)
 {
 	return g_Timer.uSecond();
@@ -368,14 +331,19 @@ void SetTrackerId(uint8_t Id)
 	g_AppData.TrackerId = Id;
 }
 
-void ImuIntEvtHandler(int IntNo, void *pCtx)
+void TimerHandler(TimerDev_t *pTimer, uint32_t Evt)
 {
 
 }
 
-void TimerHandler(TimerDev_t *pTimer, uint32_t Evt)
+SPI * const GetSpi(void)
 {
+	return &g_Spi;
+}
 
+I2C * const GetI2c(void)
+{
+	return &g_I2c;
 }
 
 void HardwareInit()
@@ -454,23 +422,23 @@ void HardwareInit()
 	// SPI init
 	g_Spi.Init(s_SpiCfg);
 
-	// IMU init
-	IOPinConfig(IMU_INT_PORT, IMU_INT_PIN, IMU_INT_PINOP, IOPINDIR_INPUT, IOPINRES_PULLUP, IOPINTYPE_NORMAL);
-	IOPinEnableInterrupt(IMU_INT_NO, IMU_INT_PRIO, IMU_INT_PORT, IMU_INT_PIN, IOPINSENSE_LOW_TRANSITION, ImuIntEvtHandler, nullptr);
+	bool res = InitSensors(&g_Spi, &g_Timer);
 
-	bool res = g_MotSensor.Init(s_AccelCfg, &g_Spi, &g_Timer);
+	if (res == false)
+	{
+		g_Uart.printf("No motion sensor found on SPI\r\n");
+
+		res = InitSensors(&g_I2c, &g_Timer);
+		if (res == false)
+		{
+			g_Uart.printf("No sensor found\r\n");
+		}
+	}
+
 	if (res == true)
 	{
-		res = g_MotSensor.Init(s_GyroCfg, &g_Spi, &g_Timer);
-		if (res == true)
-		{
-			res = g_MotSensor.Init(s_MagCfg, &g_Spi, &g_Timer);
-			if (res == false)
-			{
-				// device does not have connected mag. Try external mag
-				res = g_Mag.Init(s_MagCfg, &g_I2c, &g_Timer);
-			}
-		}
+		IOPinConfig(IMU_INT_PORT, IMU_INT_PIN, IMU_INT_PINOP, IOPINDIR_INPUT, IOPINRES_PULLUP, IOPINTYPE_NORMAL);
+		IOPinEnableInterrupt(IMU_INT_NO, IMU_INT_PRIO, IMU_INT_PORT, IMU_INT_PIN, IOPINSENSE_LOW_TRANSITION, ImuIntHandler, nullptr);
 	}
 }
 

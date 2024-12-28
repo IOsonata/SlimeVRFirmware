@@ -37,6 +37,9 @@ SOFTWARE.
 #define __SLIMETRACKERESB_H__
 
 #include "nrf_esb.h"
+#include "coredev/timer.h"
+#include "coredev/i2c.h"
+#include "coredev/spi.h"
 
 #define RECEIVER_ID_LENGTH		8
 
@@ -51,6 +54,10 @@ void SetTrackerId(uint8_t Id);
 bool EsbInit(void);
 bool EsbSendPairing(void);
 bool EsbSend(uint8_t *pData, size_t Len);
+bool InitSensors(DeviceIntrf * const pIntrf,  Timer * const pTimer);
+SPI * const GetSpi(void);
+I2C * const GetI2c(void);
+void ImuIntHandler(int IntNo, void *pCtx);
 
 #ifdef __cplusplus
 }

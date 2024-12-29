@@ -1,11 +1,38 @@
-//============================================================================
-// Name        : main.cpp
-// Author      : Nguyen Hoan Hoang
-// Version     :
-// Copyright   : Copyright 2024, I-SYST inc. All rights reserved.
-// Description : Hello World in C++
-//============================================================================
+/**-------------------------------------------------------------------------
+@file	main.cpp
 
+@brief	Main firmware file
+
+Implementation of SlimeVR tracker ESB
+
+@author	Nguyen Hoan Hoang
+@date	Dec. 11, 2024
+
+@license
+
+MIT License
+
+Copyright (c) 2024 I-SYST inc. All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+----------------------------------------------------------------------------*/
 #include "nrf_esb.h"
 #include "sdk_common.h"
 #include "nrf.h"
@@ -274,23 +301,6 @@ void clocks_start( void )
     NRF_CLOCK->EVENTS_HFCLKSTARTED = 0;
     NRF_CLOCK->TASKS_HFCLKSTART = 1;
     while (NRF_CLOCK->EVENTS_HFCLKSTARTED == 0);
-}
-
-
-void recover_state()
-{
-    uint32_t            loop_count = 0;
-    if ((NRF_POWER->GPREGRET >> 4) == RESET_MEMORY_TEST_BYTE)
-    {
-        // Take the loop_count value.
-        loop_count          = (uint8_t)(NRF_POWER->GPREGRET & 0xFUL);
-        NRF_POWER->GPREGRET = 0;
-    }
-
-    loop_count++;
-    NRF_POWER->GPREGRET = ( (RESET_MEMORY_TEST_BYTE << 4) | loop_count);
-
-   // tx_payload.data[1] = loop_count << 4;
 }
 
 bool IsPaired(void)

@@ -40,8 +40,25 @@ SOFTWARE.
 #include "coredev/timer.h"
 #include "coredev/i2c.h"
 #include "coredev/spi.h"
+#include "sensors/accel_sensor.h"
+#include "sensors/gyro_sensor.h"
+#include "sensors/mag_sensor.h"
+#include "imu/imu.h"
 
 #define RECEIVER_ID_LENGTH		8
+
+#pragma pack(push, 4)
+typedef struct {
+	Imu * const pImuDev;
+	AccelSensor * const pAccel;
+	DeviceIntrf * const pAccIntrf;
+	GyroSensor * const pGyro;
+	DeviceIntrf * const pGyroIntrf;
+	MagSensor * const pMag;
+	DeviceIntrf * const pMagIntrf;
+	uint8_t NbAxes;
+} MotionDevice_t;
+#pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,7 +71,7 @@ void SetTrackerId(uint8_t Id);
 bool EsbInit(void);
 bool EsbSendPairing(void);
 bool EsbSend(uint8_t *pData, size_t Len);
-bool InitSensors(DeviceIntrf * const pIntrf,  Timer * const pTimer);
+bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * const pTimer);
 SPI * const GetSpi(void);
 I2C * const GetI2c(void);
 void ImuIntHandler(int IntNo, void *pCtx);

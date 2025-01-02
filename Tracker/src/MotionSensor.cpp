@@ -49,11 +49,6 @@ SOFTWARE.
 
 extern UART g_Uart;
 
-typedef struct {
-	DeviceIntrf *pIntrf;
-	Sensor *pSensor;
-} MotionDevice_t;
-
 static const AccelSensorCfg_t s_AccelCfg = {
 	.DevAddr = 0,// SPI CS index,
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
@@ -79,7 +74,7 @@ static const MagSensorCfg_t s_MagCfg = {
 	.Precision = MAGSENSOR_PRECISION_HIGH,
 };
 
-
+#if 0
 //#if BOARD == BLUEIO_TAG_EVIM
 
 AgmInvnIcm20948 g_Icm20948;
@@ -94,59 +89,72 @@ MagBmm350 g_Bmi350;
 //#endif
 MotionDevice_t g_MotionSensor[] = {
 };
+#endif
 
 AccelSensor *g_pAccel = nullptr;
 GyroSensor *g_pGyro = nullptr;
 MagSensor *g_pMag = nullptr;
+Imu *g_pImu;
+
+void ImuEvtHandler(Device * const pDev, DEV_EVT Evt);
+
+static const ImuCfg_t s_ImuCfg = {
+	.EvtHandler = ImuEvtHandler
+};
 
 void ImuIntHandler(int IntNo, void *pCtx)
 {
 
 }
 
-bool InitSensors(DeviceIntrf * const pIntrf, Timer * const pTimer)
+void ImuEvtHandler(Device * const pDev, DEV_EVT Evt)
 {
-	// IMU init
-	bool res = g_Icm20948.Init(s_AccelCfg, pIntrf, pTimer);
 
-	if (res)
+}
+
+bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * const pTimer)//DeviceIntrf * const pIntrf, Timer * const pTimer)
+{
+	if (pMotDev == nullptr || Count == 0)
 	{
-		// Found ICM20948
-		g_Uart.printf("Found ICM20948\r\n");
-
-		g_pAccel = &g_Icm20948;
-		res = g_Icm20948.Init(s_GyroCfg, pIntrf, pTimer);
-		{
-			g_pGyro = &g_Icm20948;
-			res = g_Icm20948.Init(s_MagCfg, pIntrf, pTimer);
-			if (res)
-			{
-				g_pMag = &g_Icm20948;
-
-				return true;
-			}
-		}
+		return false;
 	}
-	else
+
+	bool res = false;
+
+	for (int i = 0; i < Count; i++)
 	{
-		res = g_Bmi323.Init(s_AccelCfg, pIntrf, pTimer);
-		if (res)
+		if (pMotDev[i].pAccel == nullptr || pMotDev[i].pGyro == nullptr)
 		{
-			g_Uart.printf("Found BMI323\r\n");
-			g_pAccel = &g_Bmi323;
-			res = g_Bmi323.Init(s_GyroCfg, pIntrf, pTimer);
+			continue;
+		}
+
+		res = pMotDev[i].pAccel->Init(s_AccelCfg, pMotDev[i].pAccIntrf, pTimer);
+		if (res == true)
+		{
+			res = pMotDev[i].pGyro->Init(s_GyroCfg, pMotDev[i].pGyroIntrf, pTimer);
+			if (res == true && pMotDev[i].pMag)
 			{
-				g_pGyro = &g_Bmi323;
-				res = g_Bmi350.Init(s_MagCfg, pIntrf, pTimer);
+				g_pGyro = pMotDev[i].pGyro;
+				res = pMotDev[i].pMag->Init(s_MagCfg, pMotDev[i].pMagIntrf, pTimer);
 				if (res)
 				{
-					g_pMag = &g_Bmi350;
+					g_pMag = pMotDev[i].pMag;
 				}
-
-				return true;
+			}
+			if (res &&  pMotDev[i].pImuDev)
+			{
+				g_pAccel = pMotDev[i].pAccel;
+				g_pGyro = pMotDev[i].pGyro;
+				g_pMag = pMotDev[i].pMag;
+				res = pMotDev[i].pImuDev->Init(s_ImuCfg, g_pAccel, g_pGyro, g_pMag);
+				if (res)
+				{
+					g_pImu = pMotDev[i].pImuDev;
+					break;
+				}
 			}
 		}
 	}
 
-	return g_pAccel != nullptr;
+	return res;
 }

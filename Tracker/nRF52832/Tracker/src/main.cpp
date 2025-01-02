@@ -53,6 +53,8 @@ SOFTWARE.
 #include "sensors/agm_invn_icm20948.h"
 #include "sensors/ag_bmi323.h"
 #include "sensors/mag_bmm350.h"
+#include "imu/imu_invn_icm20948.h"
+#include "imu/imu_icm20948.h"
 
 #include "SlimeTrackerESB.h"
 
@@ -201,6 +203,21 @@ const static TimerCfg_t s_TimerCfg = {
 };
 
 Timer g_Timer;
+
+// Device list
+
+ImuInvnIcm20948 g_Imu20948;
+AgmInvnIcm20948 g_Icm20948;
+
+AgBmi323 g_Bmi323;
+MagBmm350 g_Bmm350;
+
+static const MotionDevice_t s_MotionDevices[] = {
+	{&g_Imu20948, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, 9},
+	{nullptr, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, &g_Bmm350, &g_I2c, 9},
+};
+
+static const size_t s_NbMotionDevices = sizeof(s_MotionDevices) / sizeof(MotionDevice_t);
 
 // Need this for icm20948
 uint64_t inv_icm20948_get_time_us(void)
@@ -432,17 +449,11 @@ void HardwareInit()
 	// SPI init
 	g_Spi.Init(s_SpiCfg);
 
-	bool res = InitSensors(&g_Spi, &g_Timer);
+	bool res = InitSensors(s_MotionDevices, s_NbMotionDevices, &g_Timer);
 
 	if (res == false)
 	{
-		g_Uart.printf("No motion sensor found on SPI\r\n");
-
-		res = InitSensors(&g_I2c, &g_Timer);
-		if (res == false)
-		{
-			g_Uart.printf("No sensor found\r\n");
-		}
+		g_Uart.printf("No sensor found\r\n");
 	}
 
 	if (res == true)

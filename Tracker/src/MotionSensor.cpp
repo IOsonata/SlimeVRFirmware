@@ -108,7 +108,7 @@ static const ImuCfg_t s_ImuCfg = {
 
 void ImuIntHandler(int IntNo, void *pCtx)
 {
-	((AgmIcm20948*)g_pAccel)->IntHandler();
+	g_pAccel->IntHandler();
 
 	AccelSensorData_t accdata;
 	GyroSensorData_t gyrodata;
@@ -177,7 +177,6 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 				{
 			//		g_pImu = pMotDev[i].pImuDev;
 				    FusionAhrsInitialise(&g_Fusion);
-					((AgmIcm20948*)g_pAccel)->Enable();
 					//g_pImu->Enable();
 
 					break;

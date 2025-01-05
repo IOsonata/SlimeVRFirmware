@@ -514,6 +514,9 @@ int main()
     {
     	printf("Run mode\r\n");
     	g_LedRun.On();
+
+    	g_Icm20948.Enable();
+
     }
 
     while (true)

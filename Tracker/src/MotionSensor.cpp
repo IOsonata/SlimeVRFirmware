@@ -39,10 +39,11 @@ SOFTWARE.
 #include "coredev/i2c.h"
 #include "coredev/spi.h"
 #include "coredev/uart.h"
-#include "sensors/agm_invn_icm20948.h"
+#include "sensors/agm_icm20948.h"
 #include "sensors/ag_bmi323.h"
 #include "sensors/mag_bmm350.h"
 
+#include "Fusion/Fusion.h"
 #include "SlimeTrackerESB.h"
 
 #include "board.h"
@@ -64,7 +65,7 @@ static const GyroSensorCfg_t s_GyroCfg = {
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
 	.Freq = 50000,
 	.Sensitivity = 10,
-	.FltrFreq = 200,
+	.FltrFreq = 0,
 };
 
 static const MagSensorCfg_t s_MagCfg = {
@@ -96,15 +97,40 @@ GyroSensor *g_pGyro = nullptr;
 MagSensor *g_pMag = nullptr;
 Imu *g_pImu;
 
+FusionAhrs g_Fusion;
+
 void ImuEvtHandler(Device * const pDev, DEV_EVT Evt);
 
 static const ImuCfg_t s_ImuCfg = {
 	.EvtHandler = ImuEvtHandler
 };
 
+
 void ImuIntHandler(int IntNo, void *pCtx)
 {
+	((AgmIcm20948*)g_pAccel)->IntHandler();
 
+	AccelSensorData_t accdata;
+	GyroSensorData_t gyrodata;
+	MagSensorData_t magdata;
+
+	g_pAccel->Read(accdata);
+	g_pGyro->Read(gyrodata);
+	g_pMag->Read(magdata);
+	FusionVector gyroscope = {gyrodata.X, gyrodata.Y, gyrodata.Z}; // replace this with actual gyroscope data in degrees/s
+	FusionVector accelerometer = {accdata.X, accdata.Y, accdata.Z}; // replace this with actual accelerometer data in g
+	FusionVector magnetometer = {magdata.X, magdata.Y, magdata.Z};
+
+//        FusionAhrsUpdateNoMagnetometer(&ahrs, gyroscope, accelerometer, 0.02);
+	FusionAhrsUpdate(&g_Fusion, gyroscope, accelerometer, magnetometer, 0.02);
+	FusionQuaternion fq = FusionAhrsGetQuaternion(&g_Fusion);
+
+	long q[4];
+	q[0] = fq.array[0] * (1 << 30);
+	q[1] = fq.array[1] * (1 << 30);
+	q[2] = fq.array[2] * (1 << 30);
+	q[3] = fq.array[3] * (1 << 30);
+	printf("Quat %d: %d %d %d\r\n", q[0], q[1], q[2], q[3]);
 }
 
 void ImuEvtHandler(Device * const pDev, DEV_EVT Evt)
@@ -146,10 +172,14 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 				g_pAccel = pMotDev[i].pAccel;
 				g_pGyro = pMotDev[i].pGyro;
 				g_pMag = pMotDev[i].pMag;
-				res = pMotDev[i].pImuDev->Init(s_ImuCfg, g_pAccel, g_pGyro, g_pMag);
-				if (res)
+			//	res = pMotDev[i].pImuDev->Init(s_ImuCfg, g_pAccel, g_pGyro, g_pMag);
+			//	if (res)
 				{
-					g_pImu = pMotDev[i].pImuDev;
+			//		g_pImu = pMotDev[i].pImuDev;
+				    FusionAhrsInitialise(&g_Fusion);
+					((AgmIcm20948*)g_pAccel)->Enable();
+					//g_pImu->Enable();
+
 					break;
 				}
 			}

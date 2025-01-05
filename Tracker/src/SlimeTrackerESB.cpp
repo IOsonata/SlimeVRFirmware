@@ -68,12 +68,12 @@ void EsbEventHandler(nrf_esb_evt_t const * pEvt)
 				{
 					// This is the pairing packet which contains the receiver MAC address
 
-					g_Uart.printf("rx_payload.data[0] = %02x ", payload.data[0]);
+					printf("rx_payload.data[0] = %02x ", payload.data[0]);
 					for (int i = 1; i < 8; i++)
 					{
-						g_Uart.printf("%02x ", payload.data[i]);
+						printf("%02x ", payload.data[i]);
 					}
-					g_Uart.printf("\r\n");
+					printf("\r\n");
 
 					// Save receiver MAC address
 					uint64_t mac;
@@ -86,7 +86,7 @@ void EsbEventHandler(nrf_esb_evt_t const * pEvt)
 				if (payload.length == 4)
 				{
 					// unexpected packet
-					g_Uart.printf("Error\r\n");
+					printf("Error\r\n");
 				}
 			}
 			break;

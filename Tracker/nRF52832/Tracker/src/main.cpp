@@ -142,14 +142,14 @@ static const SPICfg_t s_SpiCfg = {
     .Mode = SPIMODE_MASTER,
 	.pIOPinMap = s_Spi1Pins,
     .NbIOPins = sizeof(s_Spi1Pins) / sizeof(IOPinCfg_t),
-    .Rate = 1000000,   						// Speed in Hz
+    .Rate = 4000000,   						// Speed in Hz
     .DataSize = 8,      					// Data Size
     .MaxRetry = 5,      					// Max retries
     .BitOrder = SPIDATABIT_MSB,
     .DataPhase = SPIDATAPHASE_FIRST_CLK, 	// Data phase
     .ClkPol = SPICLKPOL_HIGH,         		// clock polarity
     .ChipSel = SPICSEL_AUTO,
-	.bDmaEn = false,						// DMA
+	.bDmaEn = true,						// DMA
 	.bIntEn = false,
     .IntPrio = APP_IRQ_PRIORITY_LOW,    	// Interrupt priority
 	.DummyByte = 0xff,
@@ -206,8 +206,8 @@ Timer g_Timer;
 
 // Device list
 
-ImuInvnIcm20948 g_Imu20948;
-AgmInvnIcm20948 g_Icm20948;
+ImuIcm20948 g_Imu20948;
+AgmIcm20948 g_Icm20948;
 
 AgBmi323 g_Bmi323;
 MagBmm350 g_Bmm350;
@@ -505,14 +505,14 @@ int main()
 
     if (IsPaired() == false)
     {
-    	g_Uart.printf("Paring mode\r\n");
+    	printf("Paring mode\r\n");
     	g_LedPair.On();
 
     	EsbSendPairing();
     }
     else
     {
-    	g_Uart.printf("Run mode\r\n");
+    	printf("Run mode\r\n");
     	g_LedRun.On();
     }
 

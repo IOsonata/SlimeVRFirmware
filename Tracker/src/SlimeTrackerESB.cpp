@@ -47,6 +47,25 @@ static const uint8_t DiscBaseAddr0[4] = {0x62, 0x39, 0x8A, 0xF2};
 static const uint8_t DiscBaseAddr1[4] = {0x28, 0xFF, 0x50, 0xB8};
 static const uint8_t DiscAddrPrefix[8] = {0xFE, 0xFF, 0x29, 0x27, 0x09, 0x02, 0xB2, 0xD6};
 
+static const uint8_t crc8_ccitt_small_table[16] = {
+	0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15,
+	0x38, 0x3f, 0x36, 0x31, 0x24, 0x23, 0x2a, 0x2d
+};
+
+// non standard
+uint8_t slime_crc8_ccitt(uint8_t val, const void *buf, size_t cnt)
+{
+	size_t i;
+	const uint8_t *p = (const uint8_t *)buf;
+
+	for (i = 0; i < cnt; i++) {
+		val ^= p[i];
+		val = (val << 4) ^ crc8_ccitt_small_table[val >> 4];
+		val = (val << 4) ^ crc8_ccitt_small_table[val >> 4];
+	}
+	return val;
+}
+
 void EsbEventHandler(nrf_esb_evt_t const * pEvt)
 {
 	nrf_esb_payload_t payload;
@@ -188,7 +207,7 @@ bool EsbSendPairing(void)
 	uint64_t mac = nrf_get_mac_address();
 	memcpy(&txpayload.data[2], &mac, 6);
 
-	uint8_t cs = crc8_ccitt(&txpayload.data[2], 6, 7);
+	uint8_t cs = slime_crc8_ccitt(7, &txpayload.data[2], 6);
 	if (cs == 0)
 		cs = 8;
 

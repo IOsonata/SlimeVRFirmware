@@ -50,11 +50,18 @@ SOFTWARE.
 #include "coredev/timer.h"
 #include "miscdev/led.h"
 #include "iopinctrl.h"
-#include "sensors/agm_invn_icm20948.h"
 #include "sensors/ag_bmi323.h"
 #include "sensors/mag_bmm350.h"
+
+#define INVN
+
+#ifdef INVN
+#include "sensors/agm_invn_icm20948.h"
 #include "imu/imu_invn_icm20948.h"
+#else
+#include "sensors/agm_icm20948.h"
 #include "imu/imu_icm20948.h"
+#endif
 
 #include "SlimeTrackerESB.h"
 
@@ -205,15 +212,19 @@ const static TimerCfg_t s_TimerCfg = {
 Timer g_Timer;
 
 // Device list
-
+#ifdef INVN
+ImuInvnIcm20948 g_Imu20948;
+AgmInvnIcm20948 g_Icm20948;
+#else
 ImuIcm20948 g_Imu20948;
 AgmIcm20948 g_Icm20948;
+#endif
 
 AgBmi323 g_Bmi323;
 MagBmm350 g_Bmm350;
 
 static const MotionDevice_t s_MotionDevices[] = {
-	{&g_Imu20948, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, 9},
+	{/*&g_Imu20948*/nullptr, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, 9},
 	{nullptr, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, &g_Bmm350, &g_I2c, 9},
 };
 

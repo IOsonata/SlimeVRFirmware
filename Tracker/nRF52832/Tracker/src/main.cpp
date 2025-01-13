@@ -133,7 +133,7 @@ static const I2CCfg_t s_I2cCfg = {
 	.NbSlaveAddr = 0,			// Number of slave addresses
 	.SlaveAddr = {0,},			// Slave addresses
 	.bDmaEn = true,
-	.bIntEn = true,
+	.bIntEn = false,
 	.IntPrio = 7,				// Interrupt prio
 	.EvtCB = nullptr			// Event callback
 };
@@ -225,6 +225,7 @@ MagBmm350 g_Bmm350;
 
 static const MotionDevice_t s_MotionDevices[] = {
 	{/*&g_Imu20948*/nullptr, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, 9},
+	{/*&g_Imu20948*/nullptr, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, 9},
 	{nullptr, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, &g_Bmm350, &g_I2c, 9},
 };
 
@@ -459,6 +460,7 @@ void HardwareInit()
 
 	// SPI init
 	g_Spi.Init(s_SpiCfg);
+	g_I2c.Init(s_I2cCfg);
 
 	bool res = InitSensors(s_MotionDevices, s_NbMotionDevices, &g_Timer);
 
@@ -516,14 +518,14 @@ int main()
 
     if (IsPaired() == false)
     {
-    	printf("Paring mode\r\n");
+    	g_Uart.printf("Paring mode\r\n");
     	g_LedPair.On();
 
     	EsbSendPairing();
     }
     else
     {
-    	printf("Run mode\r\n");
+    	g_Uart.printf("Run mode\r\n");
     	g_LedRun.On();
 
     	g_Icm20948.Enable();

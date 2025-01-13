@@ -173,40 +173,45 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 		res = pMotDev[i].pAccel->Init(s_AccelCfg, pMotDev[i].pAccIntrf, pTimer);
 		if (res == true)
 		{
+			g_Uart.printf("Accel found\r\n");
+
 			res = pMotDev[i].pGyro->Init(s_GyroCfg, pMotDev[i].pGyroIntrf, pTimer);
 			if (res == true && pMotDev[i].pMag)
 			{
-				g_pGyro = pMotDev[i].pGyro;
 				res = pMotDev[i].pMag->Init(s_MagCfg, pMotDev[i].pMagIntrf, pTimer);
 				if (res)
 				{
+					g_Uart.printf("Mag found\r\n");
 					g_pMag = pMotDev[i].pMag;
 				}
-			}
-			if (res &&  pMotDev[i].pImuDev)
-			{
-				g_pAccel = pMotDev[i].pAccel;
-				g_pGyro = pMotDev[i].pGyro;
-				g_pMag = pMotDev[i].pMag;
-				res = pMotDev[i].pImuDev->Init(s_ImuCfg, g_pAccel, g_pGyro, g_pMag);
-				if (res)
+				if (pMotDev[i].pImuDev)
 				{
-					g_pImu = pMotDev[i].pImuDev;
-//				    FusionAhrsInitialise(&g_Fusion);
-					g_pImu->Enable();
+					g_pAccel = pMotDev[i].pAccel;
+					g_pGyro = pMotDev[i].pGyro;
+					res = pMotDev[i].pImuDev->Init(s_ImuCfg, g_pAccel, g_pGyro, g_pMag);
+					if (res)
+					{
+						g_pImu = pMotDev[i].pImuDev;
+						g_pImu->Enable();
+						res = true;
+						break;
+					}
+				}
+				else
+				{
+					g_pAccel = pMotDev[i].pAccel;
+					g_pGyro = pMotDev[i].pGyro;
 
+					g_pAccel->Enable();
+					g_pGyro->Enable();
+					if (g_pMag)
+					{
+						g_pMag->Enable();
+					}
+					FusionAhrsInitialise(&g_Fusion);
+					res = true;
 					break;
 				}
-			}
-			else
-			{
-				g_pAccel->Enable();
-				g_pGyro->Enable();
-				if (g_pMag)
-				{
-					g_pMag->Enable();
-				}
-			    FusionAhrsInitialise(&g_Fusion);
 			}
 		}
 	}

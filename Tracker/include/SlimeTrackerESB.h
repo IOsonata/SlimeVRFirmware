@@ -45,6 +45,52 @@ SOFTWARE.
 #include "sensors/mag_sensor.h"
 #include "imu/imu.h"
 
+
+#pragma pack(push, 1)
+
+typedef struct {
+	uint8_t Id;					//!< Packet id = 0
+	uint8_t TrackerId;
+	uint8_t BatLevel;
+	uint8_t BatVolt;
+	uint8_t SensorTemp;			//!< Sensor temperature
+	uint8_t BoardId;			//!< Board id
+	uint8_t McuId;				//!< MCU id
+	uint16_t FwBuild;
+	uint8_t FwMajor;
+	uint8_t FwMinor;
+	uint8_t FwPatch;
+	uint8_t Rssi;
+} EsbPktDevInfo_t;
+
+typedef struct {
+	uint8_t Id;					//!< Packet id = 1
+	uint8_t TrackerId;
+	uint16_t Quat[4];			//!< Fixed point 15 format
+	uint16_t Acc[3];			//!< Fixed point 15 format
+} EsbPktPrecisionAccQuat_t;
+
+typedef struct {
+	uint8_t Id;					//!< Packet id = 2
+	uint8_t TrackerId;
+	uint8_t BatLevel;
+	uint8_t BatVolt;
+	uint8_t SensorTemp;			//!< Sensor temperature
+	uint32_t Q;	// ???
+	uint16_t Acc[3];
+	uint8_t Rssi;
+} EsbPktAccQuat_t;
+
+typedef struct {
+	uint8_t Id;					//!< Packet id = 2
+	uint8_t TrackerId;
+	uint8_t TrakerSvrStatus;
+	uint8_t TrackerStatus;
+	uint8_t Rssi;
+} EsbPktStatus_t;
+
+#pragma pack(pop)
+
 #define RECEIVER_ID_LENGTH		8
 
 #pragma pack(push, 4)

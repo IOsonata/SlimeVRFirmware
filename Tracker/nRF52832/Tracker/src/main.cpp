@@ -435,6 +435,14 @@ I2C * const GetI2c(void)
 	return &g_I2c;
 }
 
+void TimerEvtHandler(TimerDev_t * const pTimer, int TrigNo, void * const pContext)
+{
+	if (TrigNo == 0)
+	{
+		EsbSendDeviceInfo();
+	}
+}
+
 void HardwareInit()
 {
     g_Uart.Init(s_UartCfg);
@@ -596,6 +604,12 @@ int main()
 	SetEsbPktTrackerId(g_AppData.TrackerId);
 
    	EsbSendDeviceInfo();
+
+	uint64_t period = g_Timer.EnableTimerTrigger(0, 200UL, TIMER_TRIG_TYPE_CONTINUOUS, TimerEvtHandler);
+	if (period == 0)
+	{
+		printf("Trigger 0 failed\r\n");
+	}
 
 	g_Icm20948.Enable();
 

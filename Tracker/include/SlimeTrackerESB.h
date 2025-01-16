@@ -69,11 +69,15 @@ typedef struct {
 	uint8_t SensorTemp;			//!< Sensor temperature
 	uint8_t BoardId;			//!< Board id
 	uint8_t McuId;				//!< MCU id
+	uint8_t Rsv;
+	uint8_t ImuId;
+	uint8_t MagId;
 	uint16_t FwBuild;
 	uint8_t FwMajor;
 	uint8_t FwMinor;
 	uint8_t FwPatch;
 	uint8_t Rssi;
+	uint8_t Pad;
 } EsbPktDevInfo_t;
 
 typedef struct {
@@ -105,11 +109,12 @@ typedef struct {
 typedef struct {
 	size_t PktLen;
 	union {
-		EWsbPktHdr_t * const pHdr;
-		EsbPktDevInfo_t * const pDevInfo;
-		EsbPktPrecisionAccQuat_t * const pPreciseQuat;
-		EsbPktAccQuat_t * const pQuat;
-		EsbPktStatus_t * const pStatus;
+		EWsbPktHdr_t Hdr;
+		EsbPktDevInfo_t DevInfo;
+		EsbPktPrecisionAccQuat_t PreciseQuat;
+		EsbPktAccQuat_t Quat;
+		EsbPktStatus_t Status;
+		uint8_t Data[16];
 	};
 } EsbPacket_t;
 

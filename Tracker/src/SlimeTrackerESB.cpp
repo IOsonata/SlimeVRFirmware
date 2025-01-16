@@ -56,31 +56,32 @@ static const uint8_t crc8_ccitt_small_table[16] = {
 
 static uint8_t s_PairCrc = 0; // This is to validate pairing reply from receiver
 
-EsbPktDevInfo_t g_EsbPktDevInfo = {
-	.Id = 0,
-	.FwBuild = (uint16_t)BUILDN,
-	.FwMajor = FIRMWARE_VERSION >> 8,
-	.FwMinor = FIRMWARE_VERSION & 0xFF,
+static EsbPacket_t s_EsbPacket[] = {
+	{.PktLen = 16/*sizeof(EsbPktDevInfo_t)*/, .DevInfo = {
+			.Id = 0,
+			.ImuId = 1,
+			.FwBuild = (uint16_t)BUILDN,
+			.FwMajor = FIRMWARE_VERSION >> 8,
+			.FwMinor = FIRMWARE_VERSION & 0xFF,
+		}},
+	{.PktLen = 16/*sizeof(EsbPktPrecisionAccQuat_t)*/, .PreciseQuat =  {
+			.Id = 1,
+		}},
+	{.PktLen = 16/*sizeof(EsbPktAccQuat_t)*/, .Quat =  {
+			.Id = 2,
+		}},
+	{.PktLen = 16/*sizeof(EsbPktStatus_t)*/, .Status =  {
+			.Id = 3,
+		}}
 };
 
-EsbPktPrecisionAccQuat_t g_EsbPktPrecisionAccQuat = {
-	.Id = 1,
-};
+EsbPktDevInfo_t &g_EsbPktDevInfo = s_EsbPacket[ESBPKT_TYPE_DEVINFO].DevInfo;
 
-EsbPktAccQuat_t g_EsbPktAccQuat = {
-	.Id = 2,
-};
+EsbPktPrecisionAccQuat_t &g_EsbPktPrecisionAccQuat = s_EsbPacket[ESBPKT_TYPE_PRECISE_QUAT].PreciseQuat;
 
-EsbPktStatus_t g_EsbPktStatus = {
-	.Id = 3,
-};
+EsbPktAccQuat_t &g_EsbPktAccQuat = s_EsbPacket[ESBPKT_TYPE_QUAT].Quat;
 
-const static EsbPacket_t s_EsbPacket[] = {
-	{.PktLen = sizeof(EsbPktDevInfo_t), .pDevInfo = &g_EsbPktDevInfo},
-	{.PktLen = sizeof(EsbPktPrecisionAccQuat_t), .pPreciseQuat = &g_EsbPktPrecisionAccQuat},
-	{.PktLen = sizeof(EsbPktAccQuat_t), .pQuat = &g_EsbPktAccQuat},
-	{.PktLen = sizeof(EsbPktStatus_t), .pStatus = &g_EsbPktStatus}
-};
+EsbPktStatus_t &g_EsbPktStatus = s_EsbPacket[ESBPKT_TYPE_STATUS].Status;
 
 uint8_t slime_crc8_ccitt(uint8_t val, const void *buf, size_t cnt)
 {

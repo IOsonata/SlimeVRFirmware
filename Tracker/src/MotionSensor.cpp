@@ -141,12 +141,15 @@ void ImuIntHandler(int IntNo, void *pCtx)
 
 	FusionQuaternion fq = FusionAhrsGetQuaternion(&g_Fusion);
 
-	long q[4];
-	q[0] = fq.array[0] * (1 << 30);
-	q[1] = fq.array[1] * (1 << 30);
-	q[2] = fq.array[2] * (1 << 30);
-	q[3] = fq.array[3] * (1 << 30);
+	int16_t q[4];
+	q[0] = fq.array[0] * (1 << 15);
+	q[1] = fq.array[1] * (1 << 15);
+	q[2] = fq.array[2] * (1 << 15);
+	q[3] = fq.array[3] * (1 << 15);
+
+	EsbPktUpdateImu(accdata, q);
 //	printf("Quat %d: %d %d %d\r\n", q[0], q[1], q[2], q[3]);
+	EsbSendPacket(ESBPKT_TYPE_PRECISE_QUAT);
 }
 
 void ImuEvtHandler(Device * const pDev, DEV_EVT Evt)

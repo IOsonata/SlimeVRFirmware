@@ -125,14 +125,14 @@ static const I2CCfg_t s_I2cCfg = {
 	.Mode = I2CMODE_MASTER,
 	.pIOPinMap = s_I2cPins,
 	.NbIOPins = sizeof(s_I2cPins) / sizeof(IOPinCfg_t),
-	.Rate = 200000,				// Rate in Hz
+	.Rate = 250000,				// Rate in Hz
 	.MaxRetry = 5,				// Retry
 	.AddrType = I2CADDR_TYPE_NORMAL,
 	.NbSlaveAddr = 0,			// Number of slave addresses
 	.SlaveAddr = {0,},			// Slave addresses
 	.bDmaEn = true,
 	.bIntEn = false,
-	.IntPrio = 7,				// Interrupt prio
+	.IntPrio = APP_IRQ_PRIORITY_LOW,				// Interrupt prio
 	.EvtCB = nullptr			// Event callback
 };
 

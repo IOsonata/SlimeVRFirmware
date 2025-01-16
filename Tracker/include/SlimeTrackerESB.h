@@ -151,6 +151,7 @@ static inline bool EsbSendDeviceInfo() { return EsbSendPacket(ESBPKT_TYPE_DEVINF
 static inline bool EsbSendPreciseQuat() { return EsbSendPacket(ESBPKT_TYPE_PRECISE_QUAT); }
 static inline bool EsbSendQuat() { return EsbSendPacket(ESBPKT_TYPE_QUAT); }
 static inline bool EsbSendStatus() { return EsbSendPacket(ESBPKT_TYPE_STATUS); }
+void EsbPktUpdateImu(AccelSensorData_t &Accel, int16_t Quat[4]);
 
 #ifdef __cplusplus
 }

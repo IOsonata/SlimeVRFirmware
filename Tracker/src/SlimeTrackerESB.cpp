@@ -102,6 +102,7 @@ void EsbEventHandler(nrf_esb_evt_t const * pEvt)
     switch (pEvt->evt_id)
     {
         case NRF_ESB_EVENT_TX_SUCCESS:
+        	g_Uart.printf("Tx Success\r\n");
             break;
         case NRF_ESB_EVENT_TX_FAILED:
             (void) nrf_esb_flush_tx();
@@ -134,7 +135,7 @@ void EsbEventHandler(nrf_esb_evt_t const * pEvt)
 							g_Uart.printf("Paired tracker id:%d\r\n", payload.data[1]);
 							SetTrackerId(payload.data[1]);
 							// Save receiver MAC address
-							uint64_t mac;
+							uint64_t mac = 0;
 							memcpy(&mac, payload.data, 8);
 							SetReceiverMacAddr(mac);
 						}
@@ -229,7 +230,7 @@ bool EsbInit(void)
 bool EsbSendData(uint8_t *pData, size_t Len)
 {
 	nrf_esb_payload_t txpayload = {
-		.length = 0,
+		.length = Len,
 		.pipe = 1,
 		.noack = 0,
 	};
@@ -276,3 +277,15 @@ bool EsbSendPacket(ESBPKT_TYPE PktType)
 {
 	return EsbSendData((uint8_t*)&s_EsbPacket[PktType], s_EsbPacket[PktType].PktLen);
 }
+
+void EsbPktUpdateImu(AccelSensorData_t &Accel, int16_t Quat[4])
+{
+	g_EsbPktPrecisionAccQuat.Acc[0] = Accel.X * (1<<15);
+	g_EsbPktPrecisionAccQuat.Acc[1] = Accel.Y * (1<<15);
+	g_EsbPktPrecisionAccQuat.Acc[2] = Accel.Z * (1<<15);
+	g_EsbPktPrecisionAccQuat.Quat[0] = Quat[0];
+	g_EsbPktPrecisionAccQuat.Quat[1] = Quat[1];
+	g_EsbPktPrecisionAccQuat.Quat[2] = Quat[2];
+	g_EsbPktPrecisionAccQuat.Quat[3] = Quat[3];
+}
+

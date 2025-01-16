@@ -33,30 +33,33 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ----------------------------------------------------------------------------*/
-#include "SlimeTrackerESB.h"
+
 #include "sdk_common.h"
 #include "nrf_error.h"
 
-#include "crc.h"
+#include "idelay.h"
+//#include "crc.h"
 #include "coredev/uart.h"
 #include "nrf_mac.h"
+
+#include "SlimeTrackerESB.h"
 
 extern UART g_Uart;
 
 static const uint8_t DiscBaseAddr0[4] = {0x62, 0x39, 0x8A, 0xF2};
 static const uint8_t DiscBaseAddr1[4] = {0x28, 0xFF, 0x50, 0xB8};
 static const uint8_t DiscAddrPrefix[8] = {0xFE, 0xFF, 0x29, 0x27, 0x09, 0x02, 0xB2, 0xD6};
-
 static const uint8_t crc8_ccitt_small_table[16] = {
 	0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15,
 	0x38, 0x3f, 0x36, 0x31, 0x24, 0x23, 0x2a, 0x2d
 };
 
-// non standard
+static uint8_t s_PairCrc = 0; // This is to validate pairing reply from receiver
+
 uint8_t slime_crc8_ccitt(uint8_t val, const void *buf, size_t cnt)
 {
 	size_t i;
-	const uint8_t *p = (const uint8_t *)buf;
+	const uint8_t *p = (uint8_t*)buf;
 
 	for (i = 0; i < cnt; i++) {
 		val ^= p[i];
@@ -79,35 +82,43 @@ void EsbEventHandler(nrf_esb_evt_t const * pEvt)
             break;
         case NRF_ESB_EVENT_RX_RECEIVED:
             // Get the most recent element from the RX FIFO.
-            while (nrf_esb_read_rx_payload(&payload) == NRF_SUCCESS) ;
-
-            if (!IsPaired())
-			{
-				if (payload.length == 8)
+            while (nrf_esb_read_rx_payload(&payload) == NRF_SUCCESS)
+            {
+				if (!IsPaired())
 				{
-					// This is the pairing packet which contains the receiver MAC address
-
-					printf("rx_payload.data[0] = %02x ", payload.data[0]);
-					for (int i = 1; i < 8; i++)
+					if (payload.length == 8)
 					{
-						printf("%02x ", payload.data[i]);
-					}
-					printf("\r\n");
+						// This is the pairing packet which contains the receiver MAC address
 
-					// Save receiver MAC address
-					uint64_t mac;
-					memcpy(&mac, payload.data, 8);
-					SetReceiverMacAddr(mac);
+						g_Uart.printf("rx_payload.data[0] = %02x ", payload.data[0]);
+						for (int i = 1; i < 8; i++)
+						{
+							g_Uart.printf("%02x ", payload.data[i]);
+						}
+						g_Uart.printf("\r\n");
+
+						if (payload.data[0] == s_PairCrc)
+						{
+							g_Uart.printf("Paired %d\r\n", payload.data[1]);
+							// Save receiver MAC address
+							uint64_t mac;
+							memcpy(&mac, payload.data, 8);
+							SetReceiverMacAddr(mac);
+						}
+						else
+						{
+						}
+					}
 				}
-			}
-			else
-			{
-				if (payload.length == 4)
+				else
 				{
-					// unexpected packet
-					printf("Error\r\n");
+					if (payload.length == 4)
+					{
+						// unexpected packet
+						g_Uart.printf("Error\r\n");
+					}
 				}
-			}
+            }
 			break;
     }
 }
@@ -207,11 +218,11 @@ bool EsbSendPairing(void)
 	uint64_t mac = nrf_get_mac_address();
 	memcpy(&txpayload.data[2], &mac, 6);
 
-	uint8_t cs = slime_crc8_ccitt(7, &txpayload.data[2], 6);
-	if (cs == 0)
-		cs = 8;
+	s_PairCrc = slime_crc8_ccitt(7, &txpayload.data[2], 6);
+	if (s_PairCrc == 0)
+		s_PairCrc = 8;
 
-	txpayload.data[0] = cs;
+	txpayload.data[0] = s_PairCrc;
 
 	uint32_t res = nrf_esb_write_payload(&txpayload);
 

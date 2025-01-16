@@ -516,21 +516,23 @@ int main()
 
     msDelay(100);
 
-    if (IsPaired() == false)
+    while (IsPaired() == false)
     {
     	g_Uart.printf("Paring mode\r\n");
     	g_LedPair.On();
 
-    	EsbSendPairing();
-    }
-    else
-    {
-    	g_Uart.printf("Run mode\r\n");
-    	g_LedRun.On();
+		EsbSendPairing();
 
-    	g_Icm20948.Enable();
+		__WFE();
+		msDelay(10);
+    	g_LedPair.Off();
 
     }
+
+	g_Uart.printf("Run mode\r\n");
+	g_LedRun.On();
+
+	g_Icm20948.Enable();
 
     while (true)
     {

@@ -40,6 +40,9 @@ SOFTWARE.
 #include "nrf_esb_error_codes.h"
 #include "app_util.h"
 #include "fds.h"
+#include "nrf_cli.h"
+#include "uart/nrf_cli_uart.h"
+#include "nrf_cli_types.h"
 
 #include "istddef.h"
 #include "idelay.h"
@@ -229,6 +232,39 @@ static const MotionDevice_t s_MotionDevices[] = {
 
 static const size_t s_NbMotionDevices = sizeof(s_MotionDevices) / sizeof(MotionDevice_t);
 
+
+extern const nrf_cli_transport_api_t g_nRFCliUartApi;
+static nrf_cli_transport_t s_CliUartTransport = {
+	.p_api = &g_nRFCliUartApi
+};
+
+#if 0
+
+NRF_LOG_BACKEND_CLI_DEF(m_cli_uart_log_backend, CLI_EXAMPLE_LOG_QUEUE_SIZE);
+NRF_CLI_HISTORY_MEM_OBJ(s_CliUart);
+
+//NRF_MEMOBJ_POOL_DEF(m_cli_uart_cmd_hist_memobj,_NRF_CLI_HISTORY_HEADER_SIZE + NRF_CLI_HISTORY_ELEMENT_SIZE, NRF_CLI_HISTORY_ELEMENT_COUNT);
+
+//nrf_cli_uart_internal_t m_cli_uart_transport;
+nrf_cli_ctx_t m_cli_uart_ctx;
+extern nrf_cli_t s_CliUart;
+NRF_FPRINTF_DEF(m_cli_uart_fprintf_ctx, &s_CliUart, m_cli_uart_ctx.printf_buff, NRF_CLI_PRINTF_BUFF_SIZE, false, nrf_cli_print_stream);
+nrf_cli_t s_CliUart = {
+	.p_name = "uart_cli:~$ ",
+	.p_iface = &s_CliUartTransport,
+	.p_ctx = &m_cli_uart_ctx,//CONCAT_2(name, _ctx),
+	.p_log_backend = NULL,//NRF_CLI_BACKEND_PTR(m_cli_uart),
+	.p_fprintf_ctx = &m_cli_uart_fprintf_ctx,//CONCAT_2(name, _fprintf_ctx),
+	.p_cmd_hist_mempool = NRF_CLI_MEMOBJ_PTR(s_CliUart),
+};
+#else
+
+
+//extern "C" {
+NRF_CLI_DEF(s_CliUart, "Slime Tracker:~$ ", &s_CliUartTransport, "\r", CLI_EXAMPLE_LOG_QUEUE_SIZE);
+//}
+#endif
+
 // Need this for icm20948
 uint64_t inv_icm20948_get_time_us(void)
 {
@@ -328,6 +364,22 @@ void clocks_start( void )
     NRF_CLOCK->EVENTS_HFCLKSTARTED = 0;
     NRF_CLOCK->TASKS_HFCLKSTART = 1;
     while (NRF_CLOCK->EVENTS_HFCLKSTARTED == 0);
+}
+
+static void cli_start(void)
+{
+    ret_code_t ret;
+
+    ret = nrf_cli_start(&s_CliUart);
+    APP_ERROR_CHECK(ret);
+}
+
+static void cli_init(void)
+{
+    ret_code_t ret;
+
+    ret = nrf_cli_init(&s_CliUart, &s_UartCfg, true, true, NRF_LOG_SEVERITY_INFO);
+    APP_ERROR_CHECK(ret);
 }
 
 bool IsPaired(void)
@@ -514,6 +566,16 @@ int main()
 
     msDelay(100);
 
+    cli_init();
+
+#if CLI_OVER_USB_CDC_ACM
+    err_code = nrf_cli_start(&m_cli_cdc_acm);
+    APP_ERROR_CHECK(ret);
+#else
+    err_code = nrf_cli_start(&s_CliUart);
+    APP_ERROR_CHECK(err_code);
+#endif
+
     while (IsPaired() == false)
     {
     	g_Uart.printf("Paring mode\r\n");
@@ -540,6 +602,43 @@ int main()
 
     while (true)
     {
-    	__WFE();
+#if CLI_OVER_USB_CDC_ACM
+    nrf_cli_process(&m_cli_cdc_acm);
+#else
+    nrf_cli_process(&s_CliUart);
+#endif
+//    	__WFE();
     }
 }
+
+void cmd_info(nrf_cli_t const * p_cli, size_t argc, char ** argv)
+{
+    nrf_cli_print(&s_CliUart, "info");
+}
+
+void cmd_reboot(nrf_cli_t const * p_cli, size_t argc, char ** argv)
+{
+    nrf_cli_print(&s_CliUart, "reboot");
+}
+
+void cmd_pair(nrf_cli_t const * p_cli, size_t argc, char ** argv)
+{
+    nrf_cli_print(&s_CliUart, "pair");
+}
+
+void cmd_erase(nrf_cli_t const * p_cli, size_t argc, char ** argv)
+{
+    nrf_cli_print(&s_CliUart, "clear");
+}
+
+void cmd_help(nrf_cli_t const * p_cli, size_t argc, char ** argv)
+{
+    nrf_cli_print(&s_CliUart, "help");
+}
+
+NRF_CLI_CMD_REGISTER(info, NULL, "Display device information", cmd_info);
+NRF_CLI_CMD_REGISTER(reboot, NULL, "Reboot", cmd_reboot);
+NRF_CLI_CMD_REGISTER(pair, NULL, "Enter pairing mode", cmd_pair);
+NRF_CLI_CMD_REGISTER(Erase, NULL, "Erase paired data", cmd_erase);
+NRF_CLI_CMD_REGISTER(h, NULL, "Help", cmd_help);
+NRF_CLI_CMD_REGISTER(help, NULL, "Help", cmd_help);

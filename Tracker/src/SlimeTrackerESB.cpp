@@ -102,10 +102,11 @@ void EsbEventHandler(nrf_esb_evt_t const * pEvt)
     switch (pEvt->evt_id)
     {
         case NRF_ESB_EVENT_TX_SUCCESS:
-        	g_Uart.printf("Tx Success\r\n");
+//        	g_Uart.printf("Tx Success\r\n");
             break;
         case NRF_ESB_EVENT_TX_FAILED:
-            (void) nrf_esb_flush_tx();
+        	g_Uart.printf("Tx failed\r\n");
+        	(void) nrf_esb_flush_tx();
             break;
         case NRF_ESB_EVENT_RX_RECEIVED:
             // Get the most recent element from the RX FIFO.
@@ -280,12 +281,12 @@ bool EsbSendPacket(ESBPKT_TYPE PktType)
 
 void EsbPktUpdateImu(AccelSensorData_t &Accel, int16_t Quat[4])
 {
-	g_EsbPktPrecisionAccQuat.Acc[0] = Accel.X * (1<<15);
-	g_EsbPktPrecisionAccQuat.Acc[1] = Accel.Y * (1<<15);
-	g_EsbPktPrecisionAccQuat.Acc[2] = Accel.Z * (1<<15);
-	g_EsbPktPrecisionAccQuat.Quat[0] = Quat[0];
-	g_EsbPktPrecisionAccQuat.Quat[1] = Quat[1];
-	g_EsbPktPrecisionAccQuat.Quat[2] = Quat[2];
-	g_EsbPktPrecisionAccQuat.Quat[3] = Quat[3];
+	g_EsbPktPrecisionAccQuat.Acc[0] = Accel.X * (1<<7);
+	g_EsbPktPrecisionAccQuat.Acc[1] = Accel.Y * (1<<7);
+	g_EsbPktPrecisionAccQuat.Acc[2] = Accel.Z * (1<<7);
+	g_EsbPktPrecisionAccQuat.Quat[0] = Quat[1];
+	g_EsbPktPrecisionAccQuat.Quat[1] = Quat[2];
+	g_EsbPktPrecisionAccQuat.Quat[2] = Quat[3];
+	g_EsbPktPrecisionAccQuat.Quat[3] = Quat[0];
 }
 

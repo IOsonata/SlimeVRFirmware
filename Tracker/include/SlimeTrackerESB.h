@@ -80,7 +80,7 @@ typedef struct {
 	uint8_t Id;					//!< Packet id = 1
 	uint8_t TrackerId;
 	uint16_t Quat[4];			//!< Fixed point 15 format
-	uint16_t Acc[3];			//!< Fixed point 15 format
+	uint16_t Acc[3];			//!< Fixed point 7 format
 } EsbPktPrecisionAccQuat_t;
 
 typedef struct {

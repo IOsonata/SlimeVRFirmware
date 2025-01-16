@@ -530,6 +530,7 @@ int main()
     }
 
 	g_Uart.printf("Run mode\r\n");
+	g_LedPair.Off();
 	g_LedRun.On();
 
 	g_Icm20948.Enable();

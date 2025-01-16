@@ -99,7 +99,8 @@ void EsbEventHandler(nrf_esb_evt_t const * pEvt)
 
 						if (payload.data[0] == s_PairCrc)
 						{
-							g_Uart.printf("Paired %d\r\n", payload.data[1]);
+							g_Uart.printf("Paired tracker id:%d\r\n", payload.data[1]);
+							SetTrackerId(payload.data[1]);
 							// Save receiver MAC address
 							uint64_t mac;
 							memcpy(&mac, payload.data, 8);

@@ -56,6 +56,25 @@ static const uint8_t crc8_ccitt_small_table[16] = {
 
 static uint8_t s_PairCrc = 0; // This is to validate pairing reply from receiver
 
+EsbPktDevInfo_t g_EsbPktDevInfo = {
+	.Id = 0,
+	.FwBuild = (uint16_t)BUILDN,
+	.FwMajor = FIRMWARE_VERSION >> 8,
+	.FwMinor = FIRMWARE_VERSION & 0xFF,
+};
+
+EsbPktPrecisionAccQuat_t g_EsbPktPrecisionAccQuat = {
+	.Id = 1,
+};
+
+EsbPktAccQuat_t g_EsbPktAccQuat = {
+	.Id = 2,
+};
+
+EsbPktStatus_t g_EsbPktStatus = {
+	.Id = 3,
+};
+
 uint8_t slime_crc8_ccitt(uint8_t val, const void *buf, size_t cnt)
 {
 	size_t i;
@@ -158,7 +177,9 @@ bool EsbInit(void)
     	for (int i = 0; i < 16; i++)
     	{
     		if (addr_buffer[i] == 0x00 || addr_buffer[i] == 0x55 || addr_buffer[i] == 0xAA) // Avoid invalid addresses (see nrf datasheet)
+    		{
     			addr_buffer[i] += 8;
+    		}
     	}
     	memcpy(base_addr_0, addr_buffer, sizeof(base_addr_0));
     	memcpy(base_addr_1, addr_buffer + 4, sizeof(base_addr_1));
@@ -228,4 +249,17 @@ bool EsbSendPairing(void)
 	uint32_t res = nrf_esb_write_payload(&txpayload);
 
 	return res == NRF_SUCCESS;
+}
+
+void SetEsbPktTrackerId(uint8_t TrakerId)
+{
+	g_EsbPktDevInfo.TrackerId = TrakerId;
+	g_EsbPktPrecisionAccQuat.TrackerId = TrakerId;
+	g_EsbPktAccQuat.TrackerId = TrakerId;
+	g_EsbPktStatus.TrackerId = TrakerId;
+}
+
+bool EsbSendDeviceInfo()
+{
+	return EsbSendData((uint8_t*)&g_EsbPktDevInfo, sizeof(g_EsbPktDevInfo));
 }

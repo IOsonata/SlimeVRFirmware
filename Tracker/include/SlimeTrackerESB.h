@@ -45,8 +45,14 @@ SOFTWARE.
 #include "sensors/mag_sensor.h"
 #include "imu/imu.h"
 
+#define FIRMWARE_VERSION	0
 
 #pragma pack(push, 1)
+
+typedef struct {
+	uint8_t Id;					//!< Packet id
+	uint8_t TrackerId;
+} EWsbPktHdr_t;
 
 typedef struct {
 	uint8_t Id;					//!< Packet id = 0
@@ -82,7 +88,7 @@ typedef struct {
 } EsbPktAccQuat_t;
 
 typedef struct {
-	uint8_t Id;					//!< Packet id = 2
+	uint8_t Id;					//!< Packet id = 3
 	uint8_t TrackerId;
 	uint8_t TrakerSvrStatus;
 	uint8_t TrackerStatus;
@@ -121,6 +127,8 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 SPI * const GetSpi(void);
 I2C * const GetI2c(void);
 void ImuIntHandler(int IntNo, void *pCtx);
+void SetEsbPktTrackerId(uint8_t TrakerId);
+bool EsbSendDeviceInfo();
 
 #ifdef __cplusplus
 }

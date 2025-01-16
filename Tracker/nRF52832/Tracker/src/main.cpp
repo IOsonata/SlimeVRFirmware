@@ -67,8 +67,6 @@ SOFTWARE.
 
 #include "board.h"
 
-
-#define FIRMWARE_VERSION	0
 #define DEVICE_NAME			"BLYST-MOTION"
 
 #define RESET_MEMORY_TEST_BYTE  (0x0DUL)        /**< Known sequence written to a special register to check if this wake up is from System OFF. */
@@ -533,7 +531,12 @@ int main()
 	g_LedPair.Off();
 	g_LedRun.On();
 
+	SetEsbPktTrackerId(g_AppData.TrackerId);
+
+   	EsbSendDeviceInfo();
+
 	g_Icm20948.Enable();
+
 
     while (true)
     {

@@ -277,7 +277,7 @@ void SetEsbPktTrackerId(uint8_t TrakerId)
 
 bool EsbSendPacket(ESBPKT_TYPE PktType)
 {
-	return EsbSendData((uint8_t*)&s_EsbPacket[PktType], s_EsbPacket[PktType].PktLen);
+	return EsbSendData((uint8_t*)s_EsbPacket[PktType].Data, s_EsbPacket[PktType].PktLen);
 }
 
 void EsbPktUpdateImu(AccelSensorData_t &Accel, int16_t Quat[4])

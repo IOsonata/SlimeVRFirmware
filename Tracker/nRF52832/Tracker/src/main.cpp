@@ -378,7 +378,7 @@ static void cli_init(void)
 {
     ret_code_t ret;
 
-    ret = nrf_cli_init(&s_CliUart, &s_UartCfg, true, true, NRF_LOG_SEVERITY_INFO);
+    ret = nrf_cli_init(&s_CliUart, (UARTDev_t*)g_Uart, true, true, NRF_LOG_SEVERITY_INFO);
     APP_ERROR_CHECK(ret);
 }
 

@@ -76,11 +76,6 @@
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/libraries/cli/nrf_cli.c</locationURI>
 		</link>
 		<link>
-			<name>src/nrf_cli_uart_api.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/src/nrf_cli_uart_api.c</locationURI>
-		</link>
-		<link>
 			<name>src/nrf_fprintf.c</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/external/fprintf/nrf_fprintf.c</locationURI>

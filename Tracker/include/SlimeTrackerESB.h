@@ -49,6 +49,13 @@ SOFTWARE.
 
 #pragma pack(push, 1)
 
+typedef enum {
+	ESBPKT_TYPE_DEVINFO,
+	ESBPKT_TYPE_PRECISE_QUAT,
+	ESBPKT_TYPE_QUAT,
+	ESBPKT_TYPE_STATUS
+} ESBPKT_TYPE;
+
 typedef struct {
 	uint8_t Id;					//!< Packet id
 	uint8_t TrackerId;
@@ -95,6 +102,17 @@ typedef struct {
 	uint8_t Rssi;
 } EsbPktStatus_t;
 
+typedef struct {
+	size_t PktLen;
+	union {
+		EWsbPktHdr_t * const pHdr;
+		EsbPktDevInfo_t * const pDevInfo;
+		EsbPktPrecisionAccQuat_t * const pPreciseQuat;
+		EsbPktAccQuat_t * const pQuat;
+		EsbPktStatus_t * const pStatus;
+	};
+} EsbPacket_t;
+
 #pragma pack(pop)
 
 #define RECEIVER_ID_LENGTH		8
@@ -128,7 +146,11 @@ SPI * const GetSpi(void);
 I2C * const GetI2c(void);
 void ImuIntHandler(int IntNo, void *pCtx);
 void SetEsbPktTrackerId(uint8_t TrakerId);
-bool EsbSendDeviceInfo();
+bool EsbSendPacket(ESBPKT_TYPE PktType);
+static inline bool EsbSendDeviceInfo() { return EsbSendPacket(ESBPKT_TYPE_DEVINFO); }
+static inline bool EsbSendPreciseQuat() { return EsbSendPacket(ESBPKT_TYPE_PRECISE_QUAT); }
+static inline bool EsbSendQuat() { return EsbSendPacket(ESBPKT_TYPE_QUAT); }
+static inline bool EsbSendStatus() { return EsbSendPacket(ESBPKT_TYPE_STATUS); }
 
 #ifdef __cplusplus
 }

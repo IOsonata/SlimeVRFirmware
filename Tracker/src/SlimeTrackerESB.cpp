@@ -75,6 +75,13 @@ EsbPktStatus_t g_EsbPktStatus = {
 	.Id = 3,
 };
 
+const static EsbPacket_t s_EsbPacket[] = {
+	{.PktLen = sizeof(EsbPktDevInfo_t), .pDevInfo = &g_EsbPktDevInfo},
+	{.PktLen = sizeof(EsbPktPrecisionAccQuat_t), .pPreciseQuat = &g_EsbPktPrecisionAccQuat},
+	{.PktLen = sizeof(EsbPktAccQuat_t), .pQuat = &g_EsbPktAccQuat},
+	{.PktLen = sizeof(EsbPktStatus_t), .pStatus = &g_EsbPktStatus}
+};
+
 uint8_t slime_crc8_ccitt(uint8_t val, const void *buf, size_t cnt)
 {
 	size_t i;
@@ -103,6 +110,12 @@ void EsbEventHandler(nrf_esb_evt_t const * pEvt)
             // Get the most recent element from the RX FIFO.
             while (nrf_esb_read_rx_payload(&payload) == NRF_SUCCESS)
             {
+				g_Uart.printf("len = %d, rx_payload.data[0] = %02x ", payload.length, payload.data[0]);
+				for (int i = 1; i < payload.length; i++)
+				{
+					g_Uart.printf("%02x ", payload.data[i]);
+				}
+				g_Uart.printf("\r\n");
 				if (!IsPaired())
 				{
 					if (payload.length == 8)
@@ -259,7 +272,7 @@ void SetEsbPktTrackerId(uint8_t TrakerId)
 	g_EsbPktStatus.TrackerId = TrakerId;
 }
 
-bool EsbSendDeviceInfo()
+bool EsbSendPacket(ESBPKT_TYPE PktType)
 {
-	return EsbSendData((uint8_t*)&g_EsbPktDevInfo, sizeof(g_EsbPktDevInfo));
+	return EsbSendData((uint8_t*)&s_EsbPacket[PktType], s_EsbPacket[PktType].PktLen);
 }

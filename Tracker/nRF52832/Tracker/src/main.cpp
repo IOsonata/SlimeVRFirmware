@@ -53,6 +53,7 @@ SOFTWARE.
 #include "coredev/timer.h"
 #include "miscdev/led.h"
 #include "iopinctrl.h"
+#include "sensors/ag_bmi270.h"
 #include "sensors/ag_bmi323.h"
 #include "sensors/mag_bmm350.h"
 
@@ -221,12 +222,14 @@ ImuIcm20948 g_Imu20948;
 AgmIcm20948 g_Icm20948;
 #endif
 
+AgBmi270 g_Bmi270;
 AgBmi323 g_Bmi323;
 MagBmm350 g_Bmm350;
 
 static const MotionDevice_t s_MotionDevices[] = {
 	{/*&g_Imu20948*/nullptr, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, 9},
 	{/*&g_Imu20948*/nullptr, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, 9},
+	{nullptr, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, 9},
 	{nullptr, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, &g_Bmm350, &g_I2c, 9},
 };
 
@@ -605,13 +608,13 @@ int main()
 
    	EsbSendDeviceInfo();
 
-	uint64_t period = g_Timer.EnableTimerTrigger(0, 200UL, TIMER_TRIG_TYPE_CONTINUOUS, TimerEvtHandler);
+	uint64_t period = g_Timer.EnableTimerTrigger(0, 1000UL, TIMER_TRIG_TYPE_CONTINUOUS, TimerEvtHandler);
 	if (period == 0)
 	{
 		printf("Trigger 0 failed\r\n");
 	}
 
-	g_Icm20948.Enable();
+//	g_Icm20948.Enable();
 
 
     while (true)
@@ -621,7 +624,7 @@ int main()
 #else
     nrf_cli_process(&s_CliUart);
 #endif
-//    	__WFE();
+    	__WFE();
     }
 }
 

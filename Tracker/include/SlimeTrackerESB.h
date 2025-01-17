@@ -47,6 +47,29 @@ SOFTWARE.
 
 #define FIRMWARE_VERSION	0
 
+// ImuId - SlimeVR Displayed.  Does not correspond to those listed in Slime-nRF
+// 1 - MPU9250
+// 2 - MPU6500
+// 3 - BNO080
+// 4 - BNO085
+// 5 - BNO055
+// 6 - MPU6050
+// 7 - BNO086
+// 8 - BMI160
+// 9 - ICM20948
+// 10 - ICM42688
+
+#define IMU_ID_MPU9250			1
+#define IMU_ID_MPU6500   		2
+#define IMU_ID_BNO080    		3
+#define IMU_ID_BNO085    		4
+#define IMU_ID_BNO055    		5
+#define IMU_ID_MPU6050   		6
+#define IMU_ID_BNO086    		7
+#define IMU_ID_BMI160    		8
+#define IMU_ID_ICM20948  		9
+#define IMU_ID_ICM42688 		10
+
 #pragma pack(push, 1)
 
 typedef enum {

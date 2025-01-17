@@ -156,12 +156,14 @@ void ImuEvtHandler(Device * const pDev, DEV_EVT Evt)
 {
 	int16_t q[4];
 	AccelSensorData_t accdata;
+	GyroSensorData_t gyrodata;
 	ImuQuat_t quat;
 
 	switch (Evt)
 	{
 		case DEV_EVT_DATA_RDY:
 			g_pImu->Read(accdata);
+			g_pImu->Read(gyrodata);
 			g_pImu->Read(quat);
 
 			q[0] = quat.Q[0] * (1 << 15);

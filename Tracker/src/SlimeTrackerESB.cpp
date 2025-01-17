@@ -57,22 +57,34 @@ static const uint8_t crc8_ccitt_small_table[16] = {
 static uint8_t s_PairCrc = 0; // This is to validate pairing reply from receiver
 
 static EsbPacket_t s_EsbPacket[] = {
-	{.PktLen = 16/*sizeof(EsbPktDevInfo_t)*/, .DevInfo = {
+	{
+		.PktLen = 16/*sizeof(EsbPktDevInfo_t)*/,
+		.DevInfo = {
 			.Id = 0,
-			.ImuId = 1,
+			.ImuId = 12,
 			.FwBuild = (uint16_t)BUILDN,
 			.FwMajor = FIRMWARE_VERSION >> 8,
 			.FwMinor = FIRMWARE_VERSION & 0xFF,
-		}},
-	{.PktLen = 16/*sizeof(EsbPktPrecisionAccQuat_t)*/, .PreciseQuat =  {
+		}
+	},
+	{
+		.PktLen = 16/*sizeof(EsbPktPrecisionAccQuat_t)*/,
+		.PreciseQuat =  {
 			.Id = 1,
-		}},
-	{.PktLen = 16/*sizeof(EsbPktAccQuat_t)*/, .Quat =  {
+		}
+	},
+	{
+		.PktLen = 16/*sizeof(EsbPktAccQuat_t)*/,
+		.Quat =  {
 			.Id = 2,
-		}},
-	{.PktLen = 16/*sizeof(EsbPktStatus_t)*/, .Status =  {
+		}
+	},
+	{
+		.PktLen = 16/*sizeof(EsbPktStatus_t)*/,
+		.Status =  {
 			.Id = 3,
-		}}
+		}
+	}
 };
 
 EsbPktDevInfo_t &g_EsbPktDevInfo = s_EsbPacket[ESBPKT_TYPE_DEVINFO].DevInfo;
@@ -207,6 +219,7 @@ bool EsbInit(void)
 #else // NRF_ESB_LEGACY
     nrf_esb_config_t nrf_esb_config         = NRF_ESB_LEGACY_CONFIG;
 #endif // NRF_ESB_LEGACY
+    nrf_esb_config.tx_output_power 			= NRF_ESB_TX_POWER_4DBM;
     nrf_esb_config.retransmit_count         = 6;
     nrf_esb_config.selective_auto_ack       = false;
     nrf_esb_config.protocol                 = NRF_ESB_PROTOCOL_ESB_DPL;

@@ -116,45 +116,63 @@ void ImuIntHandler(int IntNo, void *pCtx)
 	else
 	{
 		g_pAccel->IntHandler();
+
+		AccelSensorData_t accdata;
+		GyroSensorData_t gyrodata;
+		MagSensorData_t magdata;
+
+		g_pAccel->Read(accdata);
+		g_pGyro->Read(gyrodata);
+
+		FusionVector gyroscope = {gyrodata.X, gyrodata.Y, gyrodata.Z}; // replace this with actual gyroscope data in degrees/s
+		FusionVector accelerometer = {accdata.X, accdata.Y, accdata.Z}; // replace this with actual accelerometer data in g
+
+		if (g_pMag)
+		{
+			g_pMag->Read(magdata);
+			FusionVector magnetometer = {magdata.X, magdata.Y, magdata.Z};
+			FusionAhrsUpdate(&g_Fusion, gyroscope, accelerometer, magnetometer, 0.02);
+		}
+		else
+		{
+			FusionAhrsUpdateNoMagnetometer(&g_Fusion, gyroscope, accelerometer, 0.02);
+		}
+
+		FusionQuaternion fq = FusionAhrsGetQuaternion(&g_Fusion);
+
+		int16_t q[4];
+		q[0] = fq.array[0] * (1 << 15);
+		q[1] = fq.array[1] * (1 << 15);
+		q[2] = fq.array[2] * (1 << 15);
+		q[3] = fq.array[3] * (1 << 15);
+
+		EsbPktUpdateImu(accdata, q);
+	//	printf("Quat %d: %d %d %d\r\n", q[0], q[1], q[2], q[3]);
+		EsbSendPacket(ESBPKT_TYPE_PRECISE_QUAT);
 	}
-
-	AccelSensorData_t accdata;
-	GyroSensorData_t gyrodata;
-	MagSensorData_t magdata;
-
-	g_pAccel->Read(accdata);
-	g_pGyro->Read(gyrodata);
-
-	FusionVector gyroscope = {gyrodata.X, gyrodata.Y, gyrodata.Z}; // replace this with actual gyroscope data in degrees/s
-	FusionVector accelerometer = {accdata.X, accdata.Y, accdata.Z}; // replace this with actual accelerometer data in g
-
-	if (g_pMag)
-	{
-		g_pMag->Read(magdata);
-		FusionVector magnetometer = {magdata.X, magdata.Y, magdata.Z};
-		FusionAhrsUpdate(&g_Fusion, gyroscope, accelerometer, magnetometer, 0.02);
-	}
-	else
-	{
-		FusionAhrsUpdateNoMagnetometer(&g_Fusion, gyroscope, accelerometer, 0.02);
-	}
-
-	FusionQuaternion fq = FusionAhrsGetQuaternion(&g_Fusion);
-
-	int16_t q[4];
-	q[0] = fq.array[0] * (1 << 15);
-	q[1] = fq.array[1] * (1 << 15);
-	q[2] = fq.array[2] * (1 << 15);
-	q[3] = fq.array[3] * (1 << 15);
-
-	EsbPktUpdateImu(accdata, q);
-//	printf("Quat %d: %d %d %d\r\n", q[0], q[1], q[2], q[3]);
-	EsbSendPacket(ESBPKT_TYPE_PRECISE_QUAT);
 }
 
 void ImuEvtHandler(Device * const pDev, DEV_EVT Evt)
 {
+	int16_t q[4];
+	AccelSensorData_t accdata;
+	ImuQuat_t quat;
 
+	switch (Evt)
+	{
+		case DEV_EVT_DATA_RDY:
+			g_pImu->Read(accdata);
+			g_pImu->Read(quat);
+
+			q[0] = quat.Q[0] * (1 << 15);
+			q[1] = quat.Q[1] * (1 << 15);
+			q[2] = quat.Q[2] * (1 << 15);
+			q[3] = quat.Q[3] * (1 << 15);
+			EsbPktUpdateImu(accdata, q);
+		//	printf("Quat %d: %d %d %d\r\n", q[0], q[1], q[2], q[3]);
+			EsbSendPacket(ESBPKT_TYPE_PRECISE_QUAT);
+			break;
+	}
 }
 
 bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * const pTimer)//DeviceIntrf * const pIntrf, Timer * const pTimer)

@@ -56,6 +56,7 @@ SOFTWARE.
 #include "sensors/ag_bmi270.h"
 #include "sensors/ag_bmi323.h"
 #include "sensors/mag_bmm350.h"
+#include "coredev/iopincfg.h"
 
 #define INVN
 
@@ -116,6 +117,11 @@ alignas(4) static fds_record_t const g_AppDataRecord =
 
 volatile bool g_FdsInitialized = false;
 volatile bool g_FdsCleaned = false;
+
+#ifdef BUT_PINS
+static const IOPinCfg_t s_ButPins[] =  BUT_PINS;
+static const size_t s_NbButPins = sizeof(s_ButPins) / sizeof(IOPinCfg_t);
+#endif
 
 Led g_LedPair;
 Led g_LedRun;
@@ -446,8 +452,26 @@ void TimerEvtHandler(TimerDev_t * const pTimer, int TrigNo, void * const pContex
 	}
 }
 
+void ButEvtHandler(int IntNo, void *pCtx)
+{
+	if (IntNo == 0)
+	{
+		uint8_t b0 = IOPinRead(s_ButPins[0].PortNo, s_ButPins[0].PinNo);
+		uint8_t b1 = IOPinRead(s_ButPins[1].PortNo, s_ButPins[1].PinNo);
+
+		if (b0 && b1)
+		{
+			// Erase pairing
+			g_AppData.TrackerId = 0;
+			SetReceiverMacAddr(-1);
+		}
+	}
+}
+
 void HardwareInit()
 {
+	IOPinCfg(s_ButPins, s_NbButPins);
+
     g_Uart.Init(s_UartCfg);
 
     g_Uart.printf("\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
@@ -615,7 +639,7 @@ int main()
 	}
 
 //	g_Icm20948.Enable();
-
+	IOPinEnableInterrupt(0, 6, s_ButPins[0].PortNo, s_ButPins[0].PinNo, BLUEIO_TAG_EVIM_BUT1_SENSE, ButEvtHandler, nullptr);
 
     while (true)
     {

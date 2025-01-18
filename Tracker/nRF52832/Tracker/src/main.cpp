@@ -454,7 +454,7 @@ void TimerEvtHandler(TimerDev_t * const pTimer, int TrigNo, void * const pContex
 
 void ButEvtHandler(int IntNo, void *pCtx)
 {
-	if (IntNo == 0)
+	if (IntNo == 1)
 	{
 		uint8_t b0 = IOPinRead(s_ButPins[0].PortNo, s_ButPins[0].PinNo);
 		uint8_t b1 = IOPinRead(s_ButPins[1].PortNo, s_ButPins[1].PinNo);
@@ -639,7 +639,7 @@ int main()
 	}
 
 //	g_Icm20948.Enable();
-	IOPinEnableInterrupt(0, 6, s_ButPins[0].PortNo, s_ButPins[0].PinNo, BLUEIO_TAG_EVIM_BUT1_SENSE, ButEvtHandler, nullptr);
+	IOPinEnableInterrupt(BUT_INT_NUMER, 6, s_ButPins[0].PortNo, s_ButPins[0].PinNo, BLUEIO_TAG_EVIM_BUT1_SENSE, ButEvtHandler, nullptr);
 
     while (true)
     {

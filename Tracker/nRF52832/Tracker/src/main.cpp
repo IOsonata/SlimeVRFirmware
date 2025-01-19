@@ -72,7 +72,7 @@ SOFTWARE.
 
 #include "board.h"
 
-#define DEVICE_NAME			"BLYST-MOTION"
+#define DEVICE_NAME			"BLYST-TAG_EVIM"
 
 #define RESET_MEMORY_TEST_BYTE  (0x0DUL)        /**< Known sequence written to a special register to check if this wake up is from System OFF. */
 #define RAM_RETENTION_OFF       (0x00000003UL)  /**< The flag used to turn off RAM retention on nRF52. */
@@ -555,8 +555,8 @@ void HardwareInit()
     g_Uart.printf("\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
 
     // LED init BlueIO_Tag_Evim board
-    g_LedPair.Init(LED_RED_PORT, 18, LED_LOGIC_HIGH);
-    g_LedRun.Init(LED_GREEN_PORT, 20, LED_LOGIC_HIGH);
+    g_LedPair.Init(LED_RED_PORT, LED_RED_PIN, LED_RED_LOGIC);
+    g_LedRun.Init(LED_GREEN_PORT, LED_GREEN_PIN, LED_RED_LOGIC);
 	g_LedPair.Off();
 	g_LedRun.Off();
 

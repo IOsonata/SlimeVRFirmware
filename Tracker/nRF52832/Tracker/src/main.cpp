@@ -554,11 +554,9 @@ void HardwareInit()
     msDelay(500);
     g_Uart.printf("\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
 
-    // LED init
-//    g_LedPair.Init(LED_RED_PORT, LED_RED_PIN, LED_RED_LOGIC);
-//	g_LedRun.Init(LED_GREEN_PORT, LED_GREEN_PIN, LED_GREEN_LOGIC);//logic_low seems not correct logic for BlueIO_Tag_Evim
-    g_LedPair.Init(LED_RED_PORT, LED_RED_PIN, LED_LOGIC_HIGH);
-    g_LedRun.Init(LED_GREEN_PORT, LED_GREEN_PIN, LED_LOGIC_HIGH);
+    // LED init BlueIO_Tag_Evim board
+    g_LedPair.Init(LED_RED_PORT, 18, LED_LOGIC_HIGH);
+    g_LedRun.Init(LED_GREEN_PORT, 20, LED_LOGIC_HIGH);
 	g_LedPair.Off();
 	g_LedRun.Off();
 

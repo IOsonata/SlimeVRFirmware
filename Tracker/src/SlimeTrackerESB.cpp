@@ -56,6 +56,7 @@ static const uint8_t crc8_ccitt_small_table[16] = {
 
 static uint8_t s_PairCrc = 0; // This is to validate pairing reply from receiver
 
+/** Definition of packet that the SlimeVR tracker sends over ESB */
 static EsbPacket_t s_EsbPacket[] = {
 	{
 		.PktLen = 16/*sizeof(EsbPktDevInfo_t)*/,
@@ -95,6 +96,7 @@ EsbPktAccQuat_t &g_EsbPktAccQuat = s_EsbPacket[ESBPKT_TYPE_QUAT].Quat;
 
 EsbPktStatus_t &g_EsbPktStatus = s_EsbPacket[ESBPKT_TYPE_STATUS].Status;
 
+/** Calculate CRC compliant with SlimeVR project */
 uint8_t slime_crc8_ccitt(uint8_t val, const void *buf, size_t cnt)
 {
 	size_t i;
@@ -108,6 +110,7 @@ uint8_t slime_crc8_ccitt(uint8_t val, const void *buf, size_t cnt)
 	return val;
 }
 
+/** Event handler for ESB */
 void EsbEventHandler(nrf_esb_evt_t const * pEvt)
 {
 	nrf_esb_payload_t payload;
@@ -171,6 +174,7 @@ void EsbEventHandler(nrf_esb_evt_t const * pEvt)
     }
 }
 
+/** Init Enhanced ShockBurst (ESB) protocol */
 bool EsbInit(void)
 {
     uint32_t err_code;
@@ -242,6 +246,7 @@ bool EsbInit(void)
     return true;
 }
 
+/** Send data over ESB */
 bool EsbSendData(uint8_t *pData, size_t Len)
 {
 	nrf_esb_payload_t txpayload = {
@@ -257,6 +262,7 @@ bool EsbSendData(uint8_t *pData, size_t Len)
 	return res == NRF_SUCCESS;
 }
 
+/** Send pairing info over ESB */
 bool EsbSendPairing(void)
 {
 	nrf_esb_payload_t txpayload = {
@@ -288,11 +294,13 @@ void SetEsbPktTrackerId(uint8_t TrakerId)
 	g_EsbPktStatus.TrackerId = TrakerId;
 }
 
+/** Send packet containing sensor's raw data over ESB*/
 bool EsbSendPacket(ESBPKT_TYPE PktType)
 {
 	return EsbSendData((uint8_t*)s_EsbPacket[PktType].Data, s_EsbPacket[PktType].PktLen);
 }
 
+/** Update the sensor's data to the ESB packet */
 void EsbPktUpdateImu(AccelSensorData_t &Accel, int16_t Quat[4])
 {
 	g_EsbPktPrecisionAccQuat.Acc[0] = Accel.X * (1<<7);

@@ -47,8 +47,6 @@ SOFTWARE.
 #include "Fusion/Fusion.h"
 #include "SlimeTrackerESB.h"
 
-#include "board.h"
-
 extern UART g_Uart;
 
 static const AccelSensorCfg_t s_AccelCfg = {

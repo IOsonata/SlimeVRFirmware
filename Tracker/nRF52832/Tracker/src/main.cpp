@@ -83,6 +83,8 @@ SOFTWARE.
 #define FDS_DATA_FILE     (0xF010)
 #define FDS_DATA_REC_KEY  (0x7010)
 
+#define SEND_DEV_INFO_TIMER_TRIG_NO		0
+
 #ifdef MCUOSC
 McuOsc_t g_McuOsc = MCUOSC;
 #endif
@@ -117,6 +119,7 @@ alignas(4) static fds_record_t const g_AppDataRecord =
 
 volatile bool g_FdsInitialized = false;
 volatile bool g_FdsCleaned = false;
+volatile bool g_IsSetRxMacAddr = false;
 
 #ifdef BUT_PINS
 static const IOPinCfg_t s_ButPins[] =  BUT_PINS;
@@ -332,6 +335,16 @@ static void fds_evt_handler(fds_evt_t const * p_evt)
             }
         } break;
 
+        case FDS_EVT_UPDATE:
+        {
+        	// System reset after update Receiver's MAC addr to the FDS
+        	if (g_IsSetRxMacAddr)
+        	{
+        		g_IsSetRxMacAddr = false;
+        		__NVIC_SystemReset();
+        	}
+        } break;
+
         case FDS_EVT_GC:
         	g_FdsCleaned = true;
         	break;
@@ -341,8 +354,13 @@ static void fds_evt_handler(fds_evt_t const * p_evt)
     }
 }
 
+/** Update data in FDS */
 void UpdateRecord()
 {
+	while (g_FdsInitialized != true) {
+		__WFE();
+	}
+
     fds_record_desc_t desc = {0};
     fds_find_token_t  tok  = {0};
 
@@ -366,24 +384,17 @@ void UpdateRecord()
     }
 }
 
-
-void clocks_start( void )
+/** Start HFCLK and wait for it to start. */
+void ClockStart( void )
 {
-    // Start HFCLK and wait for it to start.
+
     NRF_CLOCK->EVENTS_HFCLKSTARTED = 0;
     NRF_CLOCK->TASKS_HFCLKSTART = 1;
     while (NRF_CLOCK->EVENTS_HFCLKSTARTED == 0);
 }
 
-static void cli_start(void)
-{
-    ret_code_t ret;
-
-    ret = nrf_cli_start(&s_CliUart);
-    APP_ERROR_CHECK(ret);
-}
-
-static void cli_init(void)
+/** Init Cli using Uart */
+static void CliUartInit(void)
 {
     ret_code_t ret;
 
@@ -391,11 +402,27 @@ static void cli_init(void)
     APP_ERROR_CHECK(ret);
 }
 
+/** Start Cli */
+static void CliStart(void)
+{
+    ret_code_t rc;
+
+#if CLI_OVER_USB_CDC_ACM
+    rc = nrf_cli_start(&m_cli_cdc_acm);
+    APP_ERROR_CHECK(ret);
+#else
+    rc = nrf_cli_start(&s_CliUart);
+    APP_ERROR_CHECK(rc);
+#endif
+}
+
+/** Check if the tracker was paired with a receiver */
 bool IsPaired(void)
 {
 	return g_AppData.ReceiverMacAddr != -1LL;
 }
 
+/** Set and store the receiver's MAC address to the Fds */
 void SetReceiverMacAddr(uint64_t Addr)
 {
 	uint8_t *p = (uint8_t*)&g_AppData;
@@ -410,13 +437,10 @@ void SetReceiverMacAddr(uint64_t Addr)
 
 	g_AppData.Cs = 0 - g_AppData.Cs;
 
+	g_IsSetRxMacAddr = true;
 	UpdateRecord();
 
 	g_LedPair.Off();
-
-	msDelay(100);
-
-    NVIC_SystemReset();
 }
 
 uint64_t GetReceiverMacAddr()
@@ -454,99 +478,104 @@ void TimerEvtHandler(TimerDev_t * const pTimer, int TrigNo, void * const pContex
 
 void ButEvtHandler(int IntNo, void *pCtx)
 {
-	if (IntNo == 1)
+	if (IntNo == BUT_INT_NUMER)
 	{
 		uint8_t b0 = IOPinRead(s_ButPins[0].PortNo, s_ButPins[0].PinNo);
 		uint8_t b1 = IOPinRead(s_ButPins[1].PortNo, s_ButPins[1].PinNo);
+		msDelay(100);//de-bouncing
+		b0 = IOPinRead(s_ButPins[0].PortNo, s_ButPins[0].PinNo);
+		b1 = IOPinRead(s_ButPins[1].PortNo, s_ButPins[1].PinNo);
 
-		if (b0 && b1)
+		if (b0 == BTN_PRESSED && b1 == BTN_PRESSED)
 		{
-			// Erase pairing
+			// Erase the pairing info in FDS
 			g_AppData.TrackerId = 0;
 			SetReceiverMacAddr(-1);
 		}
 	}
 }
 
-void HardwareInit()
-{
-	IOPinCfg(s_ButPins, s_NbButPins);
+bool FdsInit() {
+	(void) (fds_register(fds_evt_handler));
+	ret_code_t rc = fds_init();
+	APP_ERROR_CHECK(rc);
+	return (rc == NRF_SUCCESS) ? true : false;
+}
 
-    g_Uart.Init(s_UartCfg);
+/** Get data from FDS */
+void FdsGetReccord() {
+	ret_code_t rc;
 
-    g_Uart.printf("\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
+	while (g_FdsInitialized != true) {
+		__WFE();
+	}
 
-    g_LedPair.Init(LED_RED_PORT, LED_RED_PIN, LED_RED_LOGIC);
-	g_LedRun.Init(LED_GREEN_PORT, LED_GREEN_PIN, LED_GREEN_LOGIC);
-
-	g_LedPair.Off();
-	g_LedRun.Off();
-
-	(void) fds_register(fds_evt_handler);
-    uint32_t rc = fds_init();
-    APP_ERROR_CHECK(rc);
-
-    while (g_FdsInitialized != true)
-    {
-        __WFE();
-    }
-
-    fds_record_desc_t desc = {0};
-    fds_find_token_t  tok  = {0};
-
-    rc = fds_record_find(FDS_DATA_FILE, FDS_DATA_REC_KEY, &desc, &tok);
-
-    if (rc == NRF_SUCCESS)
-    {
-    	AppData_t data;
-
-    	do {
+	fds_record_desc_t desc = { 0 };
+	fds_find_token_t tok = { 0 };
+	rc = fds_record_find(FDS_DATA_FILE, FDS_DATA_REC_KEY, &desc, &tok);
+	if (rc == NRF_SUCCESS) {
+		AppData_t data;
+		do {
 			/* A config file is in flash. Let's update it. */
-			fds_flash_record_t appdata = {0};
-
+			fds_flash_record_t appdata = { 0 };
 			/* Open the record and read its contents. */
 			rc = fds_record_open(&desc, &appdata);
 			APP_ERROR_CHECK(rc);
-
 			memcpy(&data, appdata.p_data, sizeof(AppData_t));
 			/* Close the record when done reading. */
 			rc = fds_record_close(&desc);
 			APP_ERROR_CHECK(rc);
-
 			rc = fds_record_find(FDS_DATA_FILE, FDS_DATA_REC_KEY, &desc, &tok);
-    	} while (rc == NRF_SUCCESS);
-
-    	uint8_t *p = (uint8_t *)&data;
+		} while (rc == NRF_SUCCESS);
+		uint8_t *p = (uint8_t*) (&data);
 		uint8_t cs = 0;
-
-		for (int i = 0; i < sizeof(AppData_t); i++, p++)
-		{
+		for (int i = 0; i < sizeof(AppData_t); i++, p++) {
 			cs += *p;
 		}
-
-		if (cs == 0)
-		{
+		if (cs == 0) {
 			memcpy(&g_AppData, &data, sizeof(AppData_t));
-		}
-		else
-		{
+		} else {
 			UpdateRecord();
 		}
+	} else {
+		rc = fds_record_write(&desc, &g_AppDataRecord);
+		APP_ERROR_CHECK(rc);
+	}
+}
 
-    }
-    else
-    {
-        rc = fds_record_write(&desc, &g_AppDataRecord);
-        APP_ERROR_CHECK(rc);
-    }
+void HardwareInit()
+{
+	ret_code_t rc;
+
+	// Button init
+	IOPinCfg(s_ButPins, s_NbButPins);
+
+    g_Uart.Init(s_UartCfg);
+    msDelay(500);
+    g_Uart.printf("\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
+
+    // LED init
+//    g_LedPair.Init(LED_RED_PORT, LED_RED_PIN, LED_RED_LOGIC);
+//	g_LedRun.Init(LED_GREEN_PORT, LED_GREEN_PIN, LED_GREEN_LOGIC);//logic_low seems not correct logic for BlueIO_Tag_Evim
+    g_LedPair.Init(LED_RED_PORT, LED_RED_PIN, LED_LOGIC_HIGH);
+    g_LedRun.Init(LED_GREEN_PORT, LED_GREEN_PIN, LED_LOGIC_HIGH);
+	g_LedPair.Off();
+	g_LedRun.Off();
+
+	// FDS init
+	FdsInit();
+	FdsGetReccord();
 
     // Timer init
 	g_Timer.Init(s_TimerCfg);
 
 	// SPI init
 	g_Spi.Init(s_SpiCfg);
+
+	// I2C init
 	g_I2c.Init(s_I2cCfg);
 
+	// Sensor init
 	bool res = InitSensors(s_MotionDevices, s_NbMotionDevices, &g_Timer);
 
 	if (res == false)
@@ -554,11 +583,24 @@ void HardwareInit()
 		g_Uart.printf("No sensor found\r\n");
 	}
 
+	// Button init
 	if (res == true)
 	{
 		IOPinConfig(IMU_INT_PORT, IMU_INT_PIN, IMU_INT_PINOP, IOPINDIR_INPUT, IOPINRES_PULLUP, IOPINTYPE_NORMAL);
 		IOPinEnableInterrupt(IMU_INT_NO, IMU_INT_PRIO, IMU_INT_PORT, IMU_INT_PIN, IOPINSENSE_LOW_TRANSITION, ImuIntHandler, nullptr);
 	}
+}
+
+/**
+ * Set the checksum of g_AppData to default value
+ */
+void ResetChkSum() {
+	uint8_t *p = (uint8_t*) (&g_AppData);
+	g_AppData.Cs = 0;
+	for (int i = 0; i < sizeof(AppData_t); i++, p++) {
+		g_AppData.Cs += *p;
+	}
+	g_AppData.Cs = 0 - g_AppData.Cs;
 }
 
 //
@@ -580,20 +622,12 @@ void HardwareInit()
 int main()
 {
     uint32_t err_code;
+
     // Initialize
-    clocks_start();
+    ClockStart();
 
 	// Update default checksum
-	uint8_t *p = (uint8_t*)&g_AppData;
-
-	g_AppData.Cs = 0;
-
-	for (int i = 0; i < sizeof(AppData_t); i++, p++)
-	{
-		g_AppData.Cs += *p;
-	}
-
-	g_AppData.Cs = 0 - g_AppData.Cs;
+	ResetChkSum();
 
     HardwareInit();
 
@@ -601,15 +635,9 @@ int main()
 
     msDelay(100);
 
-    cli_init();
-
-#if CLI_OVER_USB_CDC_ACM
-    err_code = nrf_cli_start(&m_cli_cdc_acm);
-    APP_ERROR_CHECK(ret);
-#else
-    err_code = nrf_cli_start(&s_CliUart);
-    APP_ERROR_CHECK(err_code);
-#endif
+    // Command line
+	CliUartInit();
+	CliStart();
 
     while (IsPaired() == false)
     {
@@ -632,7 +660,8 @@ int main()
 
    	EsbSendDeviceInfo();
 
-	uint64_t period = g_Timer.EnableTimerTrigger(0, 1000UL, TIMER_TRIG_TYPE_CONTINUOUS, TimerEvtHandler);
+   	// Set timer for sending tracker's info per 1 secon
+	uint64_t period = g_Timer.EnableTimerTrigger(SEND_DEV_INFO_TIMER_TRIG_NO, 1000UL, TIMER_TRIG_TYPE_CONTINUOUS, TimerEvtHandler);
 	if (period == 0)
 	{
 		printf("Trigger 0 failed\r\n");

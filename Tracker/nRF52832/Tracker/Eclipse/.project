@@ -46,6 +46,11 @@
 			<locationURI>PARENT-3-PROJECT_LOC/include/SlimeTrackerESB.h</locationURI>
 		</link>
 		<link>
+			<name>src/SlimeTrackerMain.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/SlimeTrackerMain.cpp</locationURI>
+		</link>
+		<link>
 			<name>src/agm_icm20948.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/IOsonata/src/sensors/agm_icm20948.cpp</locationURI>
@@ -84,21 +89,6 @@
 			<name>src/mag_bmm350.h</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/IOsonata/include/sensors/mag_bmm350.h</locationURI>
-		</link>
-		<link>
-			<name>src/main.cpp</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/src/main.cpp</locationURI>
-		</link>
-		<link>
-			<name>src/nrf_cli.c</name>
-			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/libraries/cli/nrf_cli.c</locationURI>
-		</link>
-		<link>
-			<name>src/nrf_pwr_mgmt.c</name>
-			<type>1</type>
-			<locationURI>PARENT-5-PROJECT_LOC/external/nRF5_SDK/components/libraries/pwr_mgmt/nrf_pwr_mgmt.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

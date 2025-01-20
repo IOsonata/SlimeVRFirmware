@@ -250,7 +250,7 @@ bool EsbInit(void)
 bool EsbSendData(uint8_t *pData, size_t Len)
 {
 	nrf_esb_payload_t txpayload = {
-		.length = Len,
+		.length = (uint8_t)Len,
 		.pipe = 1,
 		.noack = 0,
 	};

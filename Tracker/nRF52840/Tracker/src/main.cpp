@@ -41,7 +41,8 @@ SOFTWARE.
 #include "app_util.h"
 #include "fds.h"
 #include "nrf_cli.h"
-#include "uart/nrf_cli_uart.h"
+//#include "uart/nrf_cli_uart.h"
+#include "cdc_acm/nrf_cli_cdc_acm.h"
 #include "nrf_cli_types.h"
 
 #include "istddef.h"
@@ -72,7 +73,7 @@ SOFTWARE.
 
 #include "board.h"
 
-#define DEVICE_NAME			"BLYST-TAG_EVIM"
+#define DEVICE_NAME			"BLYST-MOTION"
 
 #define RESET_MEMORY_TEST_BYTE  (0x0DUL)        /**< Known sequence written to a special register to check if this wake up is from System OFF. */
 #define RAM_RETENTION_OFF       (0x00000003UL)  /**< The flag used to turn off RAM retention on nRF52. */
@@ -103,6 +104,9 @@ const AppInfo_t g_AppInfo = {
 };
 
 AppData_t g_AppData = { 0, (uint8_t)-1, (uint64_t)-1LL};
+
+uint8_t g_extern_usbd_product_string[40 + 1] = { "SlimeNRF Receiver BLYST840 Dongle" };
+
 
 //static uint8_t s_TrackerId;
 
@@ -244,7 +248,7 @@ static const MotionDevice_t s_MotionDevices[] = {
 
 static const size_t s_NbMotionDevices = sizeof(s_MotionDevices) / sizeof(MotionDevice_t);
 
-
+#if 0
 extern const nrf_cli_transport_api_t g_nRFCliUartApi;
 static nrf_cli_transport_t s_CliUartTransport = {
 	.p_api = &g_nRFCliUartApi
@@ -273,8 +277,25 @@ nrf_cli_t s_CliUart = {
 
 
 //extern "C" {
-NRF_CLI_DEF(s_Cli, "Slime Tracker:~$ ", &s_CliUartTransport, "\r", CLI_EXAMPLE_LOG_QUEUE_SIZE);
+NRF_CLI_DEF(s_CliUart, "Slime Tracker:~$ ", &s_CliUartTransport, "\r", CLI_EXAMPLE_LOG_QUEUE_SIZE);
 //}
+#endif
+#endif
+
+#if NRF_CLI_ENABLED
+//NRF_CLI_CDC_ACM_DEF(m_cli_cdc_acm_transport);
+//#define NRF_CLI_CDC_ACM_DEF(_name_)
+static nrf_cli_cdc_acm_internal_cb_t m_cli_cdc_acm_transport_cb;
+static const nrf_cli_cdc_acm_internal_t s_CliTransport = {
+	.transport = {.p_api = &nrf_cli_cdc_acm_transport_api},
+	.p_cb = &m_cli_cdc_acm_transport_cb,
+};
+
+NRF_CLI_DEF(s_Cli,
+            "Slime:~$ ",
+            &s_CliTransport.transport,
+            '\r',
+            CLI_EXAMPLE_LOG_QUEUE_SIZE);
 #endif
 
 // Need this for icm20948
@@ -532,8 +553,8 @@ void HardwareInit()
     g_Uart.printf("\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
 
     // LED init BlueIO_Tag_Evim board
-    g_LedPair.Init(LED_RED_PORT, LED_RED_PIN, LED_RED_LOGIC);
-    g_LedRun.Init(LED_GREEN_PORT, LED_GREEN_PIN, LED_RED_LOGIC);
+    g_LedPair.Init(LED_RED_PORT, LED_RED_PIN, LED_LOGIC_HIGH);
+    g_LedRun.Init(LED_GREEN_PORT, LED_GREEN_PIN, LED_LOGIC_HIGH);
 	g_LedPair.Off();
 	g_LedRun.Off();
 
@@ -646,15 +667,11 @@ int main()
 	}
 
 //	g_Icm20948.Enable();
-	IOPinEnableInterrupt(BUT_INT_NUMER, 6, s_ButPins[0].PortNo, s_ButPins[0].PinNo, BLUEIO_TAG_EVIM_BUT1_SENSE, ButEvtHandler, nullptr);
+	IOPinEnableInterrupt(BUT_INT_NUMER, 6, s_ButPins[0].PortNo, s_ButPins[0].PinNo, BUT_PIN_SENSE, ButEvtHandler, nullptr);
 
     while (true)
     {
-#if CLI_OVER_USB_CDC_ACM
-    nrf_cli_process(&m_cli_cdc_acm);
-#else
-    nrf_cli_process(&s_Cli);
-#endif
+    	nrf_cli_process(&s_Cli);
     	__WFE();
     }
 }

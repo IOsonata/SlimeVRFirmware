@@ -52,9 +52,9 @@ extern UART g_Uart;
 static const AccelSensorCfg_t s_AccelCfg = {
 	.DevAddr = 0,// SPI CS index,
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
-	.Freq = 50000,
+	.Freq = 100000,
 	.Scale = 2,
-	.FltrFreq = 0,
+	.FltrFreq = 25000,
 	.Inter = 1,
 	.IntPol = DEVINTR_POL_LOW,
 };
@@ -62,7 +62,7 @@ static const AccelSensorCfg_t s_AccelCfg = {
 static const GyroSensorCfg_t s_GyroCfg = {
 	.DevAddr = 0,//BMI323_I2C_7BITS_DEVADDR,
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
-	.Freq = 50000,
+	.Freq = 100000,
 	.Sensitivity = 10,
 	.FltrFreq = 0,
 };
@@ -197,13 +197,16 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 			g_Uart.printf("Accel found\r\n");
 
 			res = pMotDev[i].pGyro->Init(s_GyroCfg, pMotDev[i].pGyroIntrf, pTimer);
-			if (res == true && pMotDev[i].pMag)
+			if (res == true)
 			{
-				res = pMotDev[i].pMag->Init(s_MagCfg, pMotDev[i].pMagIntrf, pTimer);
-				if (res)
+				if (pMotDev[i].pMag)
 				{
-					g_Uart.printf("Mag found\r\n");
-					g_pMag = pMotDev[i].pMag;
+					res = pMotDev[i].pMag->Init(s_MagCfg, pMotDev[i].pMagIntrf, pTimer);
+					if (res)
+					{
+						g_Uart.printf("Mag found\r\n");
+						g_pMag = pMotDev[i].pMag;
+					}
 				}
 				if (pMotDev[i].pImuDev)
 				{

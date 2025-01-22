@@ -63,7 +63,7 @@ SOFTWARE.
 #include "sensors/mag_bmm350.h"
 #include "coredev/iopincfg.h"
 
-#define INVN
+//#define INVN
 
 #ifdef INVN
 #include "sensors/agm_invn_icm20948.h"
@@ -244,8 +244,15 @@ AgBmi323 g_Bmi323;
 MagBmm350 g_Bmm350;
 
 static const MotionDevice_t s_MotionDevices[] = {
-	{/*&g_Imu20948*/nullptr, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, 9},
-	{/*&g_Imu20948*/nullptr, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, 9},
+	{
+#ifdef INVN
+//	&g_Imu20948,
+	nullptr,
+#else
+	nullptr,
+#endif
+		&g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, 9},
+	{/*&g_Imu20948*/nullptr, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, nullptr, nullptr},//*&g_Icm20948, &g_I2c, 9},
 	{nullptr, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, 9},
 	{nullptr, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, &g_Bmm350, &g_I2c, 9},
 };

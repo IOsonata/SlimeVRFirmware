@@ -46,6 +46,10 @@ SOFTWARE.
 #include "imu/imu.h"
 
 #define FIRMWARE_VERSION	0
+#define BUILD_DAY			(BUILDN - 100 * (BUILDN / 100))
+#define BUILD_MONTH			(BUILDN / 100 - 100 * (BUILDN / 10000))
+#define BUILD_YEAR			(BUILDN / 10000 - 100 * (BUILDN / 1000000))
+
 
 // ImuId - SlimeVR Displayed.  Does not correspond to those listed in Slime-nRF
 // 1 - MPU9250

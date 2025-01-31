@@ -63,7 +63,7 @@ static EsbPacket_t s_EsbPacket[] = {
 		.DevInfo = {
 			.Id = 0,
 			.ImuId = 12,
-			.FwBuild = (uint16_t)BUILDN,
+			.FwBuild = (uint16_t)((BUILD_YEAR - 20) << 9) | (BUILD_MONTH << 5) | BUILD_DAY,
 			.FwMajor = FIRMWARE_VERSION >> 8,
 			.FwMinor = FIRMWARE_VERSION & 0xFF,
 		}

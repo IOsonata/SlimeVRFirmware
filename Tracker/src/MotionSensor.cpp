@@ -52,9 +52,9 @@ extern UART g_Uart;
 static const AccelSensorCfg_t s_AccelCfg = {
 	.DevAddr = 0,// SPI CS index,
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
-	.Freq = 100000,
-	.Scale = 2,
-	.FltrFreq = 25000,
+	.Freq = 50000,
+	.Scale = 8,
+	.FltrFreq = 20000,
 	.Inter = 1,
 	.IntPol = DEVINTR_POL_LOW,
 };
@@ -62,9 +62,9 @@ static const AccelSensorCfg_t s_AccelCfg = {
 static const GyroSensorCfg_t s_GyroCfg = {
 	.DevAddr = 0,//BMI323_I2C_7BITS_DEVADDR,
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
-	.Freq = 100000,
-	.Sensitivity = 10,
-	.FltrFreq = 0,
+	.Freq = 50000,
+	.Sensitivity = 500,
+	.FltrFreq = 20000,
 };
 
 static const MagSensorCfg_t s_MagCfg = {
@@ -98,26 +98,50 @@ Imu *g_pImu;
 
 FusionAhrs g_Fusion;
 
+Timer *g_pTimer = nullptr;
+
 void ImuEvtHandler(Device * const pDev, DEV_EVT Evt);
 
 static const ImuCfg_t s_ImuCfg = {
 	.EvtHandler = ImuEvtHandler
 };
 
-
+uint64_t dt = 0;
 void ImuIntHandler(int IntNo, void *pCtx)
 {
+	int16_t q[4];
+	AccelSensorData_t accdata;
+	GyroSensorData_t gyrodata;
+	MagSensorData_t magdata;
+	uint64_t t = g_pTimer->uSecond();
+
 	if (g_pImu)
 	{
+		ImuQuat_t quat;
+
 		g_pImu->IntHandler();
+		g_pImu->Read(quat);
+		g_pImu->Read(accdata);
+		g_pImu->Read(gyrodata);
+
+		q[0] = quat.Q[0] * (1 << 15);
+		q[1] = quat.Q[1] * (1 << 15);
+		q[2] = quat.Q[2] * (1 << 15);
+		q[3] = quat.Q[3] * (1 << 15);
+		FusionVector gyroscope = {gyrodata.X, gyrodata.Y, gyrodata.Z}; // replace this with actual gyroscope data in degrees/s
+		FusionVector accelerometer = {accdata.X, accdata.Y, accdata.Z}; // replace this with actual accelerometer data in g
+		FusionAhrsUpdateNoMagnetometer(&g_Fusion, gyroscope, accelerometer, 0.02);
+		FusionQuaternion fq = FusionAhrsGetQuaternion(&g_Fusion);
+
+		q[0] = fq.array[0] * (1 << 15);
+		q[1] = fq.array[1] * (1 << 15);
+		q[2] = fq.array[2] * (1 << 15);
+		q[3] = fq.array[3] * (1 << 15);
 	}
 	else
 	{
 		g_pAccel->IntHandler();
 
-		AccelSensorData_t accdata;
-		GyroSensorData_t gyrodata;
-		MagSensorData_t magdata;
 
 		g_pAccel->Read(accdata);
 		g_pGyro->Read(gyrodata);
@@ -130,6 +154,7 @@ void ImuIntHandler(int IntNo, void *pCtx)
 			g_pMag->Read(magdata);
 			FusionVector magnetometer = {magdata.X, magdata.Y, magdata.Z};
 			FusionAhrsUpdate(&g_Fusion, gyroscope, accelerometer, magnetometer, 0.02);
+
 		}
 		else
 		{
@@ -138,16 +163,16 @@ void ImuIntHandler(int IntNo, void *pCtx)
 
 		FusionQuaternion fq = FusionAhrsGetQuaternion(&g_Fusion);
 
-		int16_t q[4];
 		q[0] = fq.array[0] * (1 << 15);
 		q[1] = fq.array[1] * (1 << 15);
 		q[2] = fq.array[2] * (1 << 15);
 		q[3] = fq.array[3] * (1 << 15);
-
-		EsbPktUpdateImu(accdata, q);
-	//	printf("Quat %d: %d %d %d\r\n", q[0], q[1], q[2], q[3]);
-		EsbSendPacket(ESBPKT_TYPE_PRECISE_QUAT);
 	}
+
+	EsbPktUpdateImu(accdata, q);
+//	printf("Quat %d: %d %d %d\r\n", q[0], q[1], q[2], q[3]);
+	EsbSendPacket(ESBPKT_TYPE_PRECISE_QUAT);
+	dt = g_pTimer->uSecond() - t;
 }
 
 void ImuEvtHandler(Device * const pDev, DEV_EVT Evt)
@@ -182,6 +207,8 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 		return false;
 	}
 
+	g_pTimer = pTimer;
+
 	bool res = false;
 
 	for (int i = 0; i < Count; i++)
@@ -190,15 +217,17 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 		{
 			continue;
 		}
+printf("Iter %d\r\n", i);
 
 		res = pMotDev[i].pAccel->Init(s_AccelCfg, pMotDev[i].pAccIntrf, pTimer);
 		if (res == true)
 		{
-			g_Uart.printf("Accel found\r\n");
+			printf("Accel found\r\n");
 
 			res = pMotDev[i].pGyro->Init(s_GyroCfg, pMotDev[i].pGyroIntrf, pTimer);
 			if (res == true)
 			{
+				printf("Gyro found\r\n");
 				if (pMotDev[i].pMag)
 				{
 					res = pMotDev[i].pMag->Init(s_MagCfg, pMotDev[i].pMagIntrf, pTimer);
@@ -223,6 +252,8 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 				}
 				else
 				{
+					printf("No imu\r\n");
+
 					g_pAccel = pMotDev[i].pAccel;
 					g_pGyro = pMotDev[i].pGyro;
 
@@ -234,6 +265,7 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 					}
 					FusionAhrsInitialise(&g_Fusion);
 					res = true;
+					printf("Sensor found\r\n");
 					break;
 				}
 			}

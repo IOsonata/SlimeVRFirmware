@@ -252,7 +252,7 @@ static const MotionDevice_t s_MotionDevices[] = {
 	nullptr,
 #endif
 		&g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, 9},
-	{/*&g_Imu20948*/nullptr, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, nullptr, nullptr},//*&g_Icm20948, &g_I2c, 9},
+	{&g_Imu20948, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, 9},
 	{nullptr, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, 9},
 	{nullptr, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, &g_Bmm350, &g_I2c, 9},
 };
@@ -588,7 +588,7 @@ void HardwareInit()
 		g_Uart.printf("No sensor found\r\n");
 	}
 
-	// Button init
+	// IMU interrupt
 	if (res == true)
 	{
 		IOPinConfig(IMU_INT_PORT, IMU_INT_PIN, IMU_INT_PINOP, IOPINDIR_INPUT, IOPINRES_PULLUP, IOPINTYPE_NORMAL);

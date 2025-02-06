@@ -119,7 +119,9 @@ void ImuIntHandler(int IntNo, void *pCtx)
 	{
 		ImuQuat_t quat;
 
+		//g_Uart.printf("g_pImu->IntHandler()\r\n");
 		g_pImu->IntHandler();
+		//g_Uart.printf("g_pImu->IntHandler() - exit\r\n");
 		g_pImu->Read(quat);
 		g_pImu->Read(accdata);
 		g_pImu->Read(gyrodata);
@@ -128,21 +130,36 @@ void ImuIntHandler(int IntNo, void *pCtx)
 		q[1] = quat.Q[1] * (1 << 15);
 		q[2] = quat.Q[2] * (1 << 15);
 		q[3] = quat.Q[3] * (1 << 15);
+#if 0
 		FusionVector gyroscope = {gyrodata.X, gyrodata.Y, gyrodata.Z}; // replace this with actual gyroscope data in degrees/s
 		FusionVector accelerometer = {accdata.X, accdata.Y, accdata.Z}; // replace this with actual accelerometer data in g
-		FusionAhrsUpdateNoMagnetometer(&g_Fusion, gyroscope, accelerometer, 0.02);
+		if (g_pMag)
+		{
+			g_pMag->Read(magdata);
+			FusionVector magnetometer = {magdata.X, magdata.Y, magdata.Z};
+			FusionAhrsUpdate(&g_Fusion, gyroscope, accelerometer, magnetometer, 0.02);
+
+		}
+		else
+		{
+			FusionAhrsUpdateNoMagnetometer(&g_Fusion, gyroscope, accelerometer, 0.02);
+		}
 		FusionQuaternion fq = FusionAhrsGetQuaternion(&g_Fusion);
 
 		q[0] = fq.array[0] * (1 << 15);
 		q[1] = fq.array[1] * (1 << 15);
 		q[2] = fq.array[2] * (1 << 15);
 		q[3] = fq.array[3] * (1 << 15);
+#endif
 	}
 	else
 	{
 		g_pAccel->IntHandler();
-
-
+		g_pGyro->IntHandler();
+		if (g_pMag)
+		{
+			g_pMag->IntHandler();
+		}
 		g_pAccel->Read(accdata);
 		g_pGyro->Read(gyrodata);
 
@@ -233,7 +250,7 @@ printf("Iter %d\r\n", i);
 					res = pMotDev[i].pMag->Init(s_MagCfg, pMotDev[i].pMagIntrf, pTimer);
 					if (res)
 					{
-						g_Uart.printf("Mag found\r\n");
+						printf("Mag found\r\n");
 						g_pMag = pMotDev[i].pMag;
 					}
 				}
@@ -247,6 +264,7 @@ printf("Iter %d\r\n", i);
 						g_pImu = pMotDev[i].pImuDev;
 						g_pImu->Enable();
 						res = true;
+						FusionAhrsInitialise(&g_Fusion);
 						break;
 					}
 				}

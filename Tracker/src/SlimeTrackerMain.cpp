@@ -62,7 +62,7 @@ SOFTWARE.
 #include "sensors/ag_bmi323.h"
 #include "sensors/mag_bmm350.h"
 #include "coredev/iopincfg.h"
-
+#include "imu/imu_xiot_fusion.h"
 //#define INVN
 
 #ifdef INVN
@@ -243,16 +243,18 @@ AgBmi270 g_Bmi270;
 AgBmi323 g_Bmi323;
 MagBmm350 g_Bmm350;
 
+ImuXiotFusion g_XiotFusion;
+
 static const MotionDevice_t s_MotionDevices[] = {
 	{
 #ifdef INVN
 //	&g_Imu20948,
 	nullptr,
 #else
-	nullptr,
+	&g_XiotFusion,
 #endif
 		&g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, 9},
-	{&g_Imu20948, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, 9},
+	{&g_XiotFusion, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, 9},
 	{nullptr, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, 9},
 	{nullptr, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, &g_Bmm350, &g_I2c, 9},
 };

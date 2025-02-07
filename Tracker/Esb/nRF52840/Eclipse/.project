@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>SlimeTrackernESBnRF52832</name>
+	<name>SlimeTrackernESBnRF52840</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -33,7 +33,7 @@
 		<link>
 			<name>src/MotionSensor.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/src/MotionSensor.cpp</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/MotionSensor.cpp</locationURI>
 		</link>
 		<link>
 			<name>src/SlimeTrackerESB.cpp</name>

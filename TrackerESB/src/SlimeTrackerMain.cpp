@@ -718,3 +718,6 @@ NRF_CLI_CMD_REGISTER(pair, NULL, "Enter pairing mode", cmd_pair);
 NRF_CLI_CMD_REGISTER(Erase, NULL, "Erase paired data", cmd_erase);
 NRF_CLI_CMD_REGISTER(h, NULL, "Help", cmd_help);
 NRF_CLI_CMD_REGISTER(help, NULL, "Help", cmd_help);
+
+
+

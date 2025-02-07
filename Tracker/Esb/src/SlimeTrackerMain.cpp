@@ -485,6 +485,7 @@ void TimerEvtHandler(TimerDev_t * const pTimer, int TrigNo, void * const pContex
 	}
 }
 
+#ifdef BUT_PINS
 void ButEvtHandler(int IntNo, void *pCtx)
 {
 	if (IntNo == BUT_INT_NUMER)
@@ -503,6 +504,7 @@ void ButEvtHandler(int IntNo, void *pCtx)
 		}
 	}
 }
+#endif
 
 bool FdsInit() {
 	(void) (fds_register(fds_evt_handler));
@@ -556,8 +558,10 @@ void HardwareInit()
 {
 	ret_code_t rc;
 
+#ifdef BUT_PINS
 	// Button init
 	IOPinCfg(s_ButPins, s_NbButPins);
+#endif
 
     g_Uart.Init(s_UartCfg);
     msDelay(500);
@@ -677,8 +681,9 @@ int main()
 		printf("Trigger 0 failed\r\n");
 	}
 
-//	g_Icm20948.Enable();
+#ifdef BUT_PINS
 	IOPinEnableInterrupt(BUT_INT_NUMER, BUT_INT_PRIO, s_ButPins[0].PortNo, s_ButPins[0].PinNo, BUT_PIN_SENSE, ButEvtHandler, nullptr);
+#endif
 
     while (true)
     {

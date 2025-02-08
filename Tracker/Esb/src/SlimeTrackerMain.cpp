@@ -246,17 +246,10 @@ MagBmm350 g_Bmm350;
 ImuXiotFusion g_XiotFusion;
 
 static const MotionDevice_t s_MotionDevices[] = {
-	{
-#ifdef INVN
-//	&g_Imu20948,
-	nullptr,
-#else
-	&g_XiotFusion,
-#endif
-		&g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, 9},
+	{&g_XiotFusion, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, nullptr, nullptr, 6},//&g_Bmm350, &g_I2c, 9},
+	{&g_XiotFusion, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, 9},
 	{&g_XiotFusion, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, 9},
 	{nullptr, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, 9},
-	{nullptr, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, &g_Bmm350, &g_I2c, 9},
 };
 
 static const size_t s_NbMotionDevices = sizeof(s_MotionDevices) / sizeof(MotionDevice_t);
@@ -554,7 +547,7 @@ void FdsGetReccord() {
 	}
 }
 
-void HardwareInit()
+bool HardwareInit()
 {
 	ret_code_t rc;
 
@@ -600,6 +593,8 @@ void HardwareInit()
 		IOPinConfig(IMU_INT_PORT, IMU_INT_PIN, IMU_INT_PINOP, IOPINDIR_INPUT, IOPINRES_PULLUP, IOPINTYPE_NORMAL);
 		IOPinEnableInterrupt(IMU_INT_NO, IMU_INT_PRIO, IMU_INT_PORT, IMU_INT_PIN, IOPINSENSE_LOW_TRANSITION, ImuIntHandler, nullptr);
 	}
+
+	return res;
 }
 
 /**
@@ -640,7 +635,10 @@ int main()
 	// Update default checksum
 	ResetChkSum();
 
-    HardwareInit();
+    if (HardwareInit() == false)
+    {
+    	while(1);
+    }
 
     EsbInit();
 

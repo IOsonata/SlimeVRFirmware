@@ -45,34 +45,9 @@ SOFTWARE.
 #include "sensors/mag_sensor.h"
 #include "imu/imu.h"
 
+#include "SlimeTracker.h"
+
 #define FIRMWARE_VERSION	0
-#define BUILD_DAY			(BUILDN - 100 * (BUILDN / 100))
-#define BUILD_MONTH			(BUILDN / 100 - 100 * (BUILDN / 10000))
-#define BUILD_YEAR			(BUILDN / 10000 - 100 * (BUILDN / 1000000))
-
-
-// ImuId - SlimeVR Displayed.  Does not correspond to those listed in Slime-nRF
-// 1 - MPU9250
-// 2 - MPU6500
-// 3 - BNO080
-// 4 - BNO085
-// 5 - BNO055
-// 6 - MPU6050
-// 7 - BNO086
-// 8 - BMI160
-// 9 - ICM20948
-// 10 - ICM42688
-
-#define IMU_ID_MPU9250			1
-#define IMU_ID_MPU6500   		2
-#define IMU_ID_BNO080    		3
-#define IMU_ID_BNO085    		4
-#define IMU_ID_BNO055    		5
-#define IMU_ID_MPU6050   		6
-#define IMU_ID_BNO086    		7
-#define IMU_ID_BMI160    		8
-#define IMU_ID_ICM20948  		9
-#define IMU_ID_ICM42688 		10
 
 #pragma pack(push, 1)
 
@@ -149,19 +124,6 @@ typedef struct {
 
 #define RECEIVER_ID_LENGTH		8
 
-#pragma pack(push, 4)
-typedef struct {
-	Imu * const pImuDev;
-	AccelSensor * const pAccel;
-	DeviceIntrf * const pAccIntrf;
-	GyroSensor * const pGyro;
-	DeviceIntrf * const pGyroIntrf;
-	MagSensor * const pMag;
-	DeviceIntrf * const pMagIntrf;
-	uint8_t NbAxes;
-} MotionDevice_t;
-#pragma pack(pop)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -173,10 +135,6 @@ void SetTrackerId(uint8_t Id);
 bool EsbInit(void);
 bool EsbSendPairing(void);
 bool EsbSend(uint8_t *pData, size_t Len);
-bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * const pTimer);
-SPI * const GetSpi(void);
-I2C * const GetI2c(void);
-void ImuIntHandler(int IntNo, void *pCtx);
 void SetEsbPktTrackerId(uint8_t TrakerId);
 bool EsbSendPacket(ESBPKT_TYPE PktType);
 static inline bool EsbSendDeviceInfo() { return EsbSendPacket(ESBPKT_TYPE_DEVINFO); }

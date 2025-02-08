@@ -723,4 +723,3 @@ NRF_CLI_CMD_REGISTER(h, NULL, "Help", cmd_help);
 NRF_CLI_CMD_REGISTER(help, NULL, "Help", cmd_help);
 
 
-

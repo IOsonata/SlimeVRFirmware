@@ -43,9 +43,10 @@ SOFTWARE.
 #include "sensors/agm_invn_icm20948.h"
 #include "sensors/ag_bmi323.h"
 #include "sensors/mag_bmm350.h"
+#include "imu/imu.h"
 
 #include "Fusion/Fusion.h"
-#include "SlimeTrackerESB.h"
+#include "SlimeTracker.h"
 
 extern UART g_Uart;
 
@@ -186,9 +187,8 @@ void ImuIntHandler(int IntNo, void *pCtx)
 		q[3] = fq.array[3] * (1 << 15);
 	}
 
-	EsbPktUpdateImu(accdata, q);
-//	printf("Quat %d: %d %d %d\r\n", q[0], q[1], q[2], q[3]);
-	EsbSendPacket(ESBPKT_TYPE_PRECISE_QUAT);
+	SendMotionData(accdata, q);
+
 	dt = g_pTimer->uSecond() - t;
 }
 
@@ -210,9 +210,9 @@ void ImuEvtHandler(Device * const pDev, DEV_EVT Evt)
 			q[1] = quat.Q[1] * (1 << 15);
 			q[2] = quat.Q[2] * (1 << 15);
 			q[3] = quat.Q[3] * (1 << 15);
-			EsbPktUpdateImu(accdata, q);
-		//	printf("Quat %d: %d %d %d\r\n", q[0], q[1], q[2], q[3]);
-			EsbSendPacket(ESBPKT_TYPE_PRECISE_QUAT);
+
+			SendMotionData(accdata, q);
+
 			break;
 	}
 }

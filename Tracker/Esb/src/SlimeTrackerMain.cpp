@@ -246,10 +246,11 @@ MagBmm350 g_Bmm350;
 ImuXiotFusion g_XiotFusion;
 
 static const MotionDevice_t s_MotionDevices[] = {
+	{nullptr, &g_Bmi270, &g_Spi, &g_Bmi270, &g_Spi, &g_Bmm350, &g_I2c, 9},
+	{nullptr, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, 9},
 	{&g_XiotFusion, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, nullptr, nullptr, 6},//&g_Bmm350, &g_I2c, 9},
 	{&g_XiotFusion, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, 9},
 	{&g_XiotFusion, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, 9},
-	{nullptr, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, 9},
 };
 
 static const size_t s_NbMotionDevices = sizeof(s_MotionDevices) / sizeof(MotionDevice_t);
@@ -561,8 +562,8 @@ bool HardwareInit()
     g_Uart.printf("\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
 
     // LED init BlueIO_Tag_Evim board
-    g_LedPair.Init(LED_RED_PORT, LED_RED_PIN, LED_LOGIC_HIGH);
-    g_LedRun.Init(LED_GREEN_PORT, LED_GREEN_PIN, LED_LOGIC_HIGH);
+    g_LedPair.Init(LED_RED_PORT, LED_RED_PIN, LED_RED_LOGIC);
+    g_LedRun.Init(LED_GREEN_PORT, LED_GREEN_PIN, LED_GREEN_LOGIC);
 	g_LedPair.Off();
 	g_LedRun.Off();
 
@@ -637,7 +638,15 @@ int main()
 
     if (HardwareInit() == false)
     {
-    	while(1);
+    	while(1)
+    	{
+    		g_LedPair.Off();
+    		g_LedRun.On();
+    		msDelay(500);
+    		g_LedPair.On();
+    		g_LedRun.Off();
+    		msDelay(500);
+    	}
     }
 
     EsbInit();

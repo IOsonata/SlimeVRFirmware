@@ -1,10 +1,13 @@
 # SlimeVRFirmware
 
-This repo is the implement of SlimeVR-nRF Tracker (ESB wireless protocol) using IOsonata instead of Zephyr.
+This repo is the implement of SlimeVR-nRF Tracker (ESB wireless protocol) using baremetal IOsonata instead of Zephyr OS.
 
-# Hardware
-I-SYST's BLUEIO-TAG-EVIM board
+# Supported Hardware
 - nRF52832 MCU
-- ICM20948 sensor (6-axis IMU & 3-axis magnetometer)
+- nRF52840 MCU
+- ICM20948 Accel, Gyro, Mag
+- BMI323 Accel, Gyro
+- BMI270 Accel, Gyro
+
 
 Documents for the board and the sensor are in Docs folder.

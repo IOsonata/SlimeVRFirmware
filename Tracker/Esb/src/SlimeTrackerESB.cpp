@@ -121,7 +121,7 @@ void EsbEventHandler(nrf_esb_evt_t const * pEvt)
 //        	g_Uart.printf("Tx Success\r\n");
             break;
         case NRF_ESB_EVENT_TX_FAILED:
-        	g_Uart.printf("Tx failed\r\n");
+//        	g_Uart.printf("Tx failed\r\n");
         	(void) nrf_esb_flush_tx();
             break;
         case NRF_ESB_EVENT_RX_RECEIVED:

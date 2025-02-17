@@ -559,7 +559,7 @@ bool HardwareInit()
 
     g_Uart.Init(s_UartCfg);
     msDelay(500);
-    g_Uart.printf("\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
+//    g_Uart.printf("\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
 
     // LED init BlueIO_Tag_Evim board
     g_LedPair.Init(LED_RED_PORT, LED_RED_PIN, LED_RED_LOGIC);
@@ -649,10 +649,6 @@ int main()
     	}
     }
 
-    EsbInit();
-
-    msDelay(100);
-
     // Command line
     err_code = nrf_cli_init(&s_Cli, (UARTDev_t*)g_Uart, true, true, NRF_LOG_SEVERITY_INFO);
     APP_ERROR_CHECK(err_code);
@@ -660,9 +656,15 @@ int main()
     err_code = nrf_cli_start(&s_Cli);
     APP_ERROR_CHECK(err_code);
 
+    nrf_cli_print(&s_Cli, "\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
+
+    EsbInit();
+
+    msDelay(100);
+
     while (IsPaired() == false)
     {
-    	g_Uart.printf("Paring mode\r\n");
+    	nrf_cli_print(&s_Cli, "Paring mode\n");
     	g_LedPair.On();
 
 		EsbSendPairing();
@@ -673,7 +675,7 @@ int main()
 
     }
 
-	g_Uart.printf("Run mode\r\n");
+    nrf_cli_print(&s_Cli, "Run mode\n");
 	g_LedPair.Off();
 	g_LedRun.On();
 
@@ -706,28 +708,34 @@ void cmd_info(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 
 void cmd_reboot(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 {
-    nrf_cli_print(&s_Cli, "reboot");
+    nrf_cli_print(&s_Cli, "Rebooting");
+
+    msDelay(100);
+
+    __NVIC_SystemReset();
 }
 
 void cmd_pair(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 {
-    nrf_cli_print(&s_Cli, "pair");
-}
+    nrf_cli_print(&s_Cli, "Rebooting to paring mode");
 
-void cmd_erase(nrf_cli_t const * p_cli, size_t argc, char ** argv)
-{
-    nrf_cli_print(&s_Cli, "clear");
+    msDelay(100);
+
+	// Erase the pairing info in FDS
+	g_AppData.TrackerId = 0;
+	SetReceiverMacAddr(-1);
 }
 
 void cmd_help(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 {
-    nrf_cli_print(&s_Cli, "help");
+    nrf_cli_print(&s_Cli, "info : Display device info");
+    nrf_cli_print(&s_Cli, "reboot : Reboot device");
+    nrf_cli_print(&s_Cli, "pair : Erase existing paired data and reboot to pairing mode");
 }
 
 NRF_CLI_CMD_REGISTER(info, NULL, "Display device information", cmd_info);
 NRF_CLI_CMD_REGISTER(reboot, NULL, "Reboot", cmd_reboot);
 NRF_CLI_CMD_REGISTER(pair, NULL, "Enter pairing mode", cmd_pair);
-NRF_CLI_CMD_REGISTER(Erase, NULL, "Erase paired data", cmd_erase);
 NRF_CLI_CMD_REGISTER(h, NULL, "Help", cmd_help);
 NRF_CLI_CMD_REGISTER(help, NULL, "Help", cmd_help);
 

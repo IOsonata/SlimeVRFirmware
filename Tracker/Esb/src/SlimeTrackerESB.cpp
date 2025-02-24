@@ -314,14 +314,22 @@ void EsbPktUpdateImu(AccelSensorData_t &Accel, int16_t Quat[4])
 
 void SendMotionData(AccelSensorData_t &Accel, int16_t Quat[4])
 {
-	g_EsbPktPrecisionAccQuat.Acc[0] = Accel.X * (1<<7);
-	g_EsbPktPrecisionAccQuat.Acc[1] = Accel.Y * (1<<7);
-	g_EsbPktPrecisionAccQuat.Acc[2] = Accel.Z * (1<<7);
+	g_EsbPktPrecisionAccQuat.Acc[0] = Accel.X * (1 << 7);
+	g_EsbPktPrecisionAccQuat.Acc[1] = Accel.Y * (1 << 7);
+	g_EsbPktPrecisionAccQuat.Acc[2] = Accel.Z * (1 << 7);
 	g_EsbPktPrecisionAccQuat.Quat[0] = Quat[1];
 	g_EsbPktPrecisionAccQuat.Quat[1] = Quat[2];
 	g_EsbPktPrecisionAccQuat.Quat[2] = Quat[3];
 	g_EsbPktPrecisionAccQuat.Quat[3] = Quat[0];
 
 //	EsbSendPacket(ESBPKT_TYPE_PRECISE_QUAT);
-	EsbSendData((uint8_t*)s_EsbPacket[ESBPKT_TYPE_PRECISE_QUAT].Data, s_EsbPacket[ESBPKT_TYPE_PRECISE_QUAT].PktLen);}
+	EsbSendData((uint8_t*) s_EsbPacket[ESBPKT_TYPE_PRECISE_QUAT].Data,
+			s_EsbPacket[ESBPKT_TYPE_PRECISE_QUAT].PktLen);
+}
+
+void UpdateBattLevel()
+{
+	g_EsbPktDevInfo.BatLevel = (int)(100 * GetBattVolt() / MAX_BATTERY_VOLTAGE);
+	g_Uart.printf("Bat level = %d \r\n", g_EsbPktDevInfo.BatLevel);
+}
 

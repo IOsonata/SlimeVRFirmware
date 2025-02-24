@@ -62,6 +62,7 @@ SOFTWARE.
 #include "sensors/ag_bmi323.h"
 #include "sensors/mag_bmm350.h"
 #include "coredev/iopincfg.h"
+#include "adc_nrf52_saadc.h"
 #include "imu/imu_xiot_fusion.h"
 //#define INVN
 
@@ -136,6 +137,7 @@ static const size_t s_NbButPins = sizeof(s_ButPins) / sizeof(IOPinCfg_t);
 
 Led g_LedPair;
 Led g_LedRun;
+Led g_LedLowBatt;
 
 /// I2C configuration
 static const IOPinCfg_t s_I2cPins[] = I2C_PINS;
@@ -230,6 +232,87 @@ const static TimerCfg_t s_TimerCfg = {
 
 Timer g_Timer;
 
+/************ ADC ************/
+// Define available voltage sources
+static const AdcRefVolt_t s_RefVolt[] = {
+	{.Type = ADC_REFVOLT_TYPE_INTERNAL, .Voltage = 0.6},
+//	{.Type = ADC_REFVOLT_TYPE_SUPPLY, .Voltage = 3.3 / 4.0},
+};
+
+static const int s_NbRefVolt = sizeof(s_RefVolt) / sizeof(AdcRefVolt_t);
+
+#define ADC_CFIFO_SIZE		CFIFO_TOTAL_MEMSIZE(100, sizeof(AdcData_t))
+static uint8_t s_AdcFifoMem[ADC_CFIFO_SIZE];
+
+// Define ADC device
+static const AdcCfg_t s_AdcCfg = {
+#ifdef ADC_DEMO_SINGLE_SHOT
+	.Mode = ADC_CONV_MODE_SINGLE,
+#else
+	.Mode = ADC_CONV_MODE_CONTINUOUS,
+#endif
+	.pRefVolt = s_RefVolt,
+	.NbRefVolt = s_NbRefVolt,
+	.DevAddr = 0,
+	.Resolution = 12,
+	.Rate = 200000,
+	.OvrSample = 0,
+#ifdef ADC_DEMO_INTERRUPT_ENABLE
+	.bInterrupt = true,
+#else
+	.bInterrupt = false,
+#endif
+	.IntPrio = 6,
+	.EvtHandler = ADVEventHandler
+};
+
+AdcnRF52 g_Adc;
+
+// Define ADC channel
+static const AdcChanCfg_t s_ChanCfg[] = {
+	{
+		.Chan = 0,
+		.RefVoltIdx = 0,
+		.Type = ADC_CHAN_TYPE_SINGLE_ENDED,
+		.Gain = 6,//1 << 8,
+		.AcqTime = 10,
+		.BurstMode = false,
+		.PinP = { .PinNo = AVdd, .Conn = ADC_PIN_CONN_NONE },
+		.FifoMemSize = ADC_CFIFO_SIZE,
+		.pFifoMem = s_AdcFifoMem,
+	},
+};
+
+static const int s_NbAdcChan = sizeof(s_ChanCfg) / sizeof(AdcChanCfg_t);
+volatile bool g_bDataReady = false;
+
+void ADVEventHandler(Device *pAdcDev, DEV_EVT Evt)
+{
+	if (Evt == DEV_EVT_DATA_RDY)
+	{
+		g_bDataReady = true;
+#ifdef ADC_DEMO_INTERRUPT_ENABLE
+		int cnt = 0;
+
+		ADC_DATA df[s_NbAdcChan];
+		cnt = g_Adc.Read(df, s_NbAdcChan);
+		if (cnt > 0)
+		{
+			g_Uart.printf("%d ADC[0] = %.2fV, ADC[1] = %.2fV, ADC[2] = %.2fV, ADC[3] = %.2fV\r\n",
+					df[0].Timestamp, df[0].Data, df[1].Data, df[2].Data, df[3].Data);
+		}
+
+		if (g_Adc.Mode() == ADC_CONV_MODE_SINGLE)
+		{
+			g_Adc.StartConversion();
+		}
+#endif
+	}
+}
+
+//extern EsbPktDevInfo_t g_EsbPktDevInfo;
+extern EsbPktDevInfo_t g_EsbPktDevInfo;
+/****************************/
 // Device list
 #ifdef INVN
 ImuInvnIcm20948 g_Imu20948;
@@ -475,11 +558,21 @@ void TimerEvtHandler(TimerDev_t * const pTimer, int TrigNo, void * const pContex
 {
 	if (TrigNo == 0)
 	{
+		g_LedRun.Toggle();
+		UpdateBattLevel();
 		EsbSendDeviceInfo();
 	}
 }
 
 #ifdef BUT_PINS
+
+void ClearPairingInfo()
+{
+	g_AppData.TrackerId = 0;
+	SetReceiverMacAddr(-1);
+	g_Uart.printf("Pairing info erased!\r\n");
+}
+
 void ButEvtHandler(int IntNo, void *pCtx)
 {
 	if (IntNo == BUT_INT_NUMER)
@@ -493,8 +586,7 @@ void ButEvtHandler(int IntNo, void *pCtx)
 		if (b0 == BTN_PRESSED && b1 == BTN_PRESSED)
 		{
 			// Erase the pairing info in FDS
-			g_AppData.TrackerId = 0;
-			SetReceiverMacAddr(-1);
+			ClearPairingInfo();
 		}
 	}
 }
@@ -558,14 +650,16 @@ bool HardwareInit()
 #endif
 
     g_Uart.Init(s_UartCfg);
-    msDelay(500);
-//    g_Uart.printf("\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
+    msDelay(200);
+    g_Uart.printf("UART initialized\r\n");
 
     // LED init BlueIO_Tag_Evim board
-    g_LedPair.Init(LED_RED_PORT, LED_RED_PIN, LED_RED_LOGIC);
+    g_LedPair.Init(LED_BLUE_PORT, LED_BLUE_PIN, LED_BLUE_LOGIC);
     g_LedRun.Init(LED_GREEN_PORT, LED_GREEN_PIN, LED_GREEN_LOGIC);
+    g_LedLowBatt.Init(LED_RED_PORT, LED_RED_PIN, LED_RED_LOGIC);
 	g_LedPair.Off();
 	g_LedRun.Off();
+	g_LedLowBatt.Off();
 
 	// FDS init
 	FdsInit();
@@ -583,16 +677,19 @@ bool HardwareInit()
 	// Sensor init
 	bool res = InitSensors(s_MotionDevices, s_NbMotionDevices, &g_Timer);
 
-	if (res == false)
+	if (res)
 	{
-		g_Uart.printf("No sensor found\r\n");
-	}
-
-	// IMU interrupt
-	if (res == true)
-	{
+		// IMU interrupt init
 		IOPinConfig(IMU_INT_PORT, IMU_INT_PIN, IMU_INT_PINOP, IOPINDIR_INPUT, IOPINRES_PULLUP, IOPINTYPE_NORMAL);
 		IOPinEnableInterrupt(IMU_INT_NO, IMU_INT_PRIO, IMU_INT_PORT, IMU_INT_PIN, IOPINSENSE_LOW_TRANSITION, ImuIntHandler, nullptr);
+
+		// ADC
+		g_Adc.Init(s_AdcCfg);
+		g_Adc.OpenChannel(s_ChanCfg, s_NbAdcChan);
+	}
+	else
+	{
+		g_Uart.printf("No sensor found\r\n");
 	}
 
 	return res;
@@ -601,10 +698,12 @@ bool HardwareInit()
 /**
  * Set the checksum of g_AppData to default value
  */
-void ResetChkSum() {
+void ResetChkSum()
+{
 	uint8_t *p = (uint8_t*) (&g_AppData);
 	g_AppData.Cs = 0;
-	for (int i = 0; i < sizeof(AppData_t); i++, p++) {
+	for (int i = 0; i < sizeof(AppData_t); i++, p++)
+	{
 		g_AppData.Cs += *p;
 	}
 	g_AppData.Cs = 0 - g_AppData.Cs;
@@ -638,6 +737,7 @@ int main()
 
     if (HardwareInit() == false)
     {
+    	g_Uart.printf("Hardware init...FAILED\r\n");
     	while(1)
     	{
     		g_LedPair.Off();
@@ -656,7 +756,8 @@ int main()
     err_code = nrf_cli_start(&s_Cli);
     APP_ERROR_CHECK(err_code);
 
-    nrf_cli_print(&s_Cli, "\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
+    //nrf_cli_print(&s_Cli, "\nNRF_CLI: SlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
+    g_Uart.printf("SlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
 
     EsbInit();
 
@@ -664,7 +765,8 @@ int main()
 
     while (IsPaired() == false)
     {
-    	nrf_cli_print(&s_Cli, "Paring mode\n");
+//    	nrf_cli_print(&s_Cli, "Pairing mode\n");
+    	g_Uart.printf("Pairing mode\r\n");
     	g_LedPair.On();
 
 		EsbSendPairing();
@@ -672,10 +774,9 @@ int main()
 		__WFE();
 		msDelay(10);
     	g_LedPair.Off();
-
     }
 
-    nrf_cli_print(&s_Cli, "Run mode\n");
+    g_Uart.printf("Run mode\r\n");
 	g_LedPair.Off();
 	g_LedRun.On();
 
@@ -683,11 +784,11 @@ int main()
 
    	EsbSendDeviceInfo();
 
-   	// Set timer for sending tracker's info per 1 secon
+   	// Set timer for sending tracker's info per 1 second
 	uint64_t period = g_Timer.EnableTimerTrigger(SEND_DEV_INFO_TIMER_TRIG_NO, 1000UL, TIMER_TRIG_TYPE_CONTINUOUS, TimerEvtHandler);
 	if (period == 0)
 	{
-		printf("Trigger 0 failed\r\n");
+		g_Uart.printf("Trigger 0 failed\r\n");
 	}
 
 #ifdef BUT_PINS
@@ -703,12 +804,12 @@ int main()
 
 void cmd_info(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 {
-    nrf_cli_print(&s_Cli, "info");
+	g_Uart.printf("\r\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
 }
 
 void cmd_reboot(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 {
-    nrf_cli_print(&s_Cli, "Rebooting");
+	g_Uart.printf("Rebooting..\r\n");
 
     msDelay(100);
 
@@ -717,20 +818,18 @@ void cmd_reboot(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 
 void cmd_pair(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 {
-    nrf_cli_print(&s_Cli, "Rebooting to paring mode");
+	g_Uart.printf("Entering to pairing mode\n\r");
 
-    msDelay(100);
-
-	// Erase the pairing info in FDS
-	g_AppData.TrackerId = 0;
-	SetReceiverMacAddr(-1);
+	// Erase the current pairing info in FDS
+	ClearPairingInfo();
 }
 
 void cmd_help(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 {
-    nrf_cli_print(&s_Cli, "info : Display device info");
-    nrf_cli_print(&s_Cli, "reboot : Reboot device");
-    nrf_cli_print(&s_Cli, "pair : Erase existing paired data and reboot to pairing mode");
+    g_Uart.printf("info		: Display device info\r\n");
+	g_Uart.printf("reboot	: Reboot device\r\n");
+	g_Uart.printf("pair 	: Erase existing paired data and reboot to pairing mode\r\n");
+	g_Uart.printf("help		: \r\n");
 }
 
 NRF_CLI_CMD_REGISTER(info, NULL, "Display device information", cmd_info);
@@ -739,4 +838,18 @@ NRF_CLI_CMD_REGISTER(pair, NULL, "Enter pairing mode", cmd_pair);
 NRF_CLI_CMD_REGISTER(h, NULL, "Help", cmd_help);
 NRF_CLI_CMD_REGISTER(help, NULL, "Help", cmd_help);
 
-
+float GetBattVolt()
+{
+	const float registerLadder = 1.0;
+	float val;
+	AdcData_t df[s_NbAdcChan];
+	memset(df, 0, sizeof(df));
+	int cnt = g_Adc.Read(df, s_NbAdcChan);
+	if (cnt > 0)
+	{
+		val = df[0].Data * registerLadder;
+//		g_Uart.printf("volt = %.2f V \r\n", val);
+	}
+	g_Adc.StartConversion();
+	return val;
+}

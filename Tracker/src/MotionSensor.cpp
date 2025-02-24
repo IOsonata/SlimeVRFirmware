@@ -234,23 +234,43 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 		{
 			continue;
 		}
-printf("Iter %d\r\n", i);
+		//g_Uart.printf("Iter %d\r\n", i);
+		switch (i)
+		{
+		case BMI270_BMM350_SPI:
+			g_Uart.printf("Looking for BMI270 and BMM 350 via SPI interface\r\n");
+			break;
+		case BMI270_BMM350_I2C:
+			g_Uart.printf("Looking for BMI270 and BMM 350 via I2C interface\r\n");
+			break;
+		case BMI323_NONE_SPI:
+			g_Uart.printf("Looking for BMI323 via SPI interface\r\n");
+			break;
+		case ICM20948_ICM20498_SPI:
+			g_Uart.printf("Looking for ICM20948 via SPI interface\r\n");
+			break;
+		case ICM20948_ICM20498_I2C:
+			g_Uart.printf("Looking for I2M20948 via SPI interface\r\n");
+			break;
+		default:
+			g_Uart.printf("Unknown motion sensor\r\n");
+		}
 
 		res = pMotDev[i].pAccel->Init(s_AccelCfg, pMotDev[i].pAccIntrf, pTimer);
 		if (res == true)
 		{
-			printf("Accel found\r\n");
+			g_Uart.printf("Accel found\r\n");
 
 			res = pMotDev[i].pGyro->Init(s_GyroCfg, pMotDev[i].pGyroIntrf, pTimer);
 			if (res == true)
 			{
-				printf("Gyro found\r\n");
+				g_Uart.printf("Gyro found\r\n");
 				if (pMotDev[i].pMag)
 				{
 					res = pMotDev[i].pMag->Init(s_MagCfg, pMotDev[i].pMagIntrf, pTimer);
 					if (res)
 					{
-						printf("Mag found\r\n");
+						g_Uart.printf("Mag found\r\n");
 						g_pMag = pMotDev[i].pMag;
 					}
 				}
@@ -270,7 +290,7 @@ printf("Iter %d\r\n", i);
 				}
 				else
 				{
-					printf("No imu\r\n");
+					g_Uart.printf("No imu\r\n");
 
 					g_pAccel = pMotDev[i].pAccel;
 					g_pGyro = pMotDev[i].pGyro;
@@ -283,7 +303,7 @@ printf("Iter %d\r\n", i);
 					}
 					FusionAhrsInitialise(&g_Fusion);
 					res = true;
-					printf("Sensor found\r\n");
+					g_Uart.printf("Sensor found\r\n");
 					break;
 				}
 			}

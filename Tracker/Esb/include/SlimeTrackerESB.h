@@ -49,6 +49,8 @@ SOFTWARE.
 
 #define FIRMWARE_VERSION	0
 
+#define MAX_BATTERY_VOLTAGE 4.15 //[V]
+
 #pragma pack(push, 1)
 
 typedef enum {
@@ -142,6 +144,8 @@ static inline bool EsbSendPreciseQuat() { return EsbSendPacket(ESBPKT_TYPE_PRECI
 static inline bool EsbSendQuat() { return EsbSendPacket(ESBPKT_TYPE_QUAT); }
 static inline bool EsbSendStatus() { return EsbSendPacket(ESBPKT_TYPE_STATUS); }
 void EsbPktUpdateImu(AccelSensorData_t &Accel, int16_t Quat[4]);
+float GetBattVolt();
+void UpdateBattLevel();
 
 #ifdef __cplusplus
 }

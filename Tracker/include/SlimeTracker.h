@@ -72,6 +72,26 @@ SOFTWARE.
 #define IMU_ID_ICM20948  		9
 #define IMU_ID_ICM42688 		10
 
+typedef enum {
+	BMI270_BMM350_SPI = 0,
+	BMI270_BMM350_I2C,
+	BMI323_NONE_SPI,
+	ICM20948_ICM20498_SPI,
+	ICM20948_ICM20498_I2C,
+} MotionDevInfo_e;
+
+typedef enum __ADC_Pins {
+	AIN0,
+	AIN1,
+	AIN2,
+	AIN3,
+	AIN4,
+	AIN5,
+	AIN6,
+	AIN7,
+	AVdd,
+} ADC_PINS;
+
 #pragma pack(push, 4)
 typedef struct {
 	Imu * const pImuDev;
@@ -94,6 +114,8 @@ SPI * const GetSpi(void);
 I2C * const GetI2c(void);
 void ImuIntHandler(int IntNo, void *pCtx);
 void SendMotionData(AccelSensorData_t &Accel, int16_t Quat[4]);
+void ClearPairingInfo();
+void ADVEventHandler(Device *pDevObj, DEV_EVT Evt);
 
 #ifdef __cplusplus
 }

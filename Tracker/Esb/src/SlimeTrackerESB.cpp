@@ -327,9 +327,10 @@ void SendMotionData(AccelSensorData_t &Accel, int16_t Quat[4])
 			s_EsbPacket[ESBPKT_TYPE_PRECISE_QUAT].PktLen);
 }
 
+extern volatile float g_battVolt;
 void UpdateBattLevel()
 {
-	g_EsbPktDevInfo.BatLevel = (int)(100 * GetBattVolt() / MAX_BATTERY_VOLTAGE);
-	g_Uart.printf("Bat level = %d \r\n", g_EsbPktDevInfo.BatLevel);
+	g_EsbPktDevInfo.BatLevel = (int)(100 * g_battVolt / MAX_BATTERY_VOLTAGE);
+//	g_Uart.printf("Bat level = %d \r\n", g_EsbPktDevInfo.BatLevel);
 }
 

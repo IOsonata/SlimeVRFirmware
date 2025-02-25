@@ -92,6 +92,8 @@ typedef enum __ADC_Pins {
 	AVdd,
 } ADC_PINS;
 
+#define MAX_BATTERY_VOLTAGE 4.1 //[V]
+
 #pragma pack(push, 4)
 typedef struct {
 	Imu * const pImuDev;
@@ -116,6 +118,7 @@ void ImuIntHandler(int IntNo, void *pCtx);
 void SendMotionData(AccelSensorData_t &Accel, int16_t Quat[4]);
 void ClearPairingInfo();
 void ADVEventHandler(Device *pDevObj, DEV_EVT Evt);
+void MeasureBatteryVoltage();
 
 #ifdef __cplusplus
 }

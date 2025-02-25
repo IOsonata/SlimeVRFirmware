@@ -90,6 +90,11 @@ SOFTWARE.
 #define FDS_DATA_REC_KEY  (0x7010)
 
 #define SEND_DEV_INFO_TIMER_TRIG_NO		0
+#define SEND_DEV_INFO_PERIOD			1000UL // [ms]
+
+#define BATTERY_MEASURE_TIMER_TRIG_NO	1
+#define BATTERY_MEASURE_PERIOD			60000UL // [ms]
+#define LOW_BATTERY_VOLTAGE				2.8 // [V]
 
 #ifdef MCUOSC
 McuOsc_t g_McuOsc = MCUOSC;
@@ -246,11 +251,7 @@ static uint8_t s_AdcFifoMem[ADC_CFIFO_SIZE];
 
 // Define ADC device
 static const AdcCfg_t s_AdcCfg = {
-#ifdef ADC_DEMO_SINGLE_SHOT
-	.Mode = ADC_CONV_MODE_SINGLE,
-#else
 	.Mode = ADC_CONV_MODE_CONTINUOUS,
-#endif
 	.pRefVolt = s_RefVolt,
 	.NbRefVolt = s_NbRefVolt,
 	.DevAddr = 0,
@@ -310,8 +311,8 @@ void ADVEventHandler(Device *pAdcDev, DEV_EVT Evt)
 	}
 }
 
-//extern EsbPktDevInfo_t g_EsbPktDevInfo;
-extern EsbPktDevInfo_t g_EsbPktDevInfo;
+volatile float g_battVolt = 0;
+
 /****************************/
 // Device list
 #ifdef INVN
@@ -554,13 +555,44 @@ I2C * const GetI2c(void)
 	return &g_I2c;
 }
 
+void MeasureBatteryVoltage()
+{
+	g_Adc.Init(s_AdcCfg);
+	g_Adc.OpenChannel(s_ChanCfg, s_NbAdcChan);
+	g_Adc.StartConversion();
+//	GetVoltage();
+	// Get voltage from ADC
+	static uint32_t ts = 0;
+	const float registerLadder = 1.0;
+	float val = 0;
+	AdcData_t df[s_NbAdcChan];
+	memset(df, 0, sizeof(df));
+	int cnt = g_Adc.Read(df, s_NbAdcChan);
+	if (cnt > 0)
+	{
+		g_battVolt = df[0].Data * registerLadder;
+//		g_Uart.printf("#%d: volt = %.2f V \r\n", ++ts, g_battVolt);
+	}
+
+	g_Adc.PowerOff();	// power saving
+}
+
 void TimerEvtHandler(TimerDev_t * const pTimer, int TrigNo, void * const pContext)
 {
-	if (TrigNo == 0)
+	if (TrigNo == SEND_DEV_INFO_TIMER_TRIG_NO)
 	{
 		g_LedRun.Toggle();
-		UpdateBattLevel();
-		EsbSendDeviceInfo();
+ 		UpdateBattLevel();
+ 		if (g_battVolt < LOW_BATTERY_VOLTAGE)
+		{
+			g_LedLowBatt.Toggle();
+		}
+ 		EsbSendPacket(ESBPKT_TYPE_DEVINFO);
+	}
+
+	if (TrigNo == BATTERY_MEASURE_TIMER_TRIG_NO)
+	{
+		MeasureBatteryVoltage();
 	}
 }
 
@@ -682,10 +714,6 @@ bool HardwareInit()
 		// IMU interrupt init
 		IOPinConfig(IMU_INT_PORT, IMU_INT_PIN, IMU_INT_PINOP, IOPINDIR_INPUT, IOPINRES_PULLUP, IOPINTYPE_NORMAL);
 		IOPinEnableInterrupt(IMU_INT_NO, IMU_INT_PRIO, IMU_INT_PORT, IMU_INT_PIN, IOPINSENSE_LOW_TRANSITION, ImuIntHandler, nullptr);
-
-		// ADC
-		g_Adc.Init(s_AdcCfg);
-		g_Adc.OpenChannel(s_ChanCfg, s_NbAdcChan);
 	}
 	else
 	{
@@ -782,13 +810,21 @@ int main()
 
 	SetEsbPktTrackerId(g_AppData.TrackerId);
 
-   	EsbSendDeviceInfo();
+	MeasureBatteryVoltage();
+   	UpdateBattLevel();
+	EsbSendDeviceInfo();
 
    	// Set timer for sending tracker's info per 1 second
-	uint64_t period = g_Timer.EnableTimerTrigger(SEND_DEV_INFO_TIMER_TRIG_NO, 1000UL, TIMER_TRIG_TYPE_CONTINUOUS, TimerEvtHandler);
+	uint64_t period = g_Timer.EnableTimerTrigger(SEND_DEV_INFO_TIMER_TRIG_NO, SEND_DEV_INFO_PERIOD, TIMER_TRIG_TYPE_CONTINUOUS, TimerEvtHandler);
 	if (period == 0)
 	{
-		g_Uart.printf("Trigger 0 failed\r\n");
+		g_Uart.printf("Timer trigger 0 failed\r\n");
+	}
+
+	period = g_Timer.EnableTimerTrigger(BATTERY_MEASURE_TIMER_TRIG_NO, BATTERY_MEASURE_PERIOD, TIMER_TRIG_TYPE_CONTINUOUS, TimerEvtHandler);
+	if (period == 0)
+	{
+		g_Uart.printf("Timer trigger 1 failed\r\n");
 	}
 
 #ifdef BUT_PINS
@@ -838,18 +874,3 @@ NRF_CLI_CMD_REGISTER(pair, NULL, "Enter pairing mode", cmd_pair);
 NRF_CLI_CMD_REGISTER(h, NULL, "Help", cmd_help);
 NRF_CLI_CMD_REGISTER(help, NULL, "Help", cmd_help);
 
-float GetBattVolt()
-{
-	const float registerLadder = 1.0;
-	float val;
-	AdcData_t df[s_NbAdcChan];
-	memset(df, 0, sizeof(df));
-	int cnt = g_Adc.Read(df, s_NbAdcChan);
-	if (cnt > 0)
-	{
-		val = df[0].Data * registerLadder;
-//		g_Uart.printf("volt = %.2f V \r\n", val);
-	}
-	g_Adc.StartConversion();
-	return val;
-}

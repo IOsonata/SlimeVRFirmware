@@ -175,7 +175,7 @@ static const SPICfg_t s_SpiCfg = {
     .Mode = SPIMODE_MASTER,
 	.pIOPinMap = s_Spi1Pins,
     .NbIOPins = sizeof(s_Spi1Pins) / sizeof(IOPinCfg_t),
-    .Rate = 4000000,   						// Speed in Hz
+    .Rate = 1000000,   						// Speed in Hz
     .DataSize = 8,      					// Data Size
     .MaxRetry = 5,      					// Max retries
     .BitOrder = SPIDATABIT_MSB,
@@ -185,7 +185,7 @@ static const SPICfg_t s_SpiCfg = {
 	.bDmaEn = true,						// DMA
 	.bIntEn = false,
     .IntPrio = APP_IRQ_PRIORITY_LOW,    	// Interrupt priority
-	.DummyByte = 0xff,
+	//.DummyByte = 0xff,
 };
 
 SPI g_Spi;
@@ -330,8 +330,8 @@ MagBmm350 g_Bmm350;
 ImuXiotFusion g_XiotFusion;
 
 static const MotionDevice_t s_MotionDevices[] = {
-	{nullptr, &g_Bmi270, &g_Spi, &g_Bmi270, &g_Spi, &g_Bmm350, &g_I2c, 9},
-	{nullptr, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, 9},
+	{&g_XiotFusion, &g_Bmi270, &g_Spi, &g_Bmi270, &g_Spi, &g_Bmm350, &g_I2c, 9},
+	{&g_XiotFusion, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, 9},
 	{&g_XiotFusion, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, nullptr, nullptr, 6},//&g_Bmm350, &g_I2c, 9},
 	{&g_XiotFusion, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, 9},
 	{&g_XiotFusion, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, 9},
@@ -683,7 +683,7 @@ bool HardwareInit()
 
     g_Uart.Init(s_UartCfg);
     msDelay(200);
-    g_Uart.printf("UART initialized\r\n");
+    g_Uart.printf("UART initialized %x\r\n", NRF_UICR->NRFFW[0]);
 
     // LED init BlueIO_Tag_Evim board
     g_LedPair.Init(LED_BLUE_PORT, LED_BLUE_PIN, LED_BLUE_LOGIC);
@@ -791,17 +791,20 @@ int main()
 
     msDelay(100);
 
-    while (IsPaired() == false)
+    if (IsPaired() == false)
     {
-//    	nrf_cli_print(&s_Cli, "Pairing mode\n");
+    	//    	nrf_cli_print(&s_Cli, "Pairing mode\n");
     	g_Uart.printf("Pairing mode\r\n");
-    	g_LedPair.On();
+    	while (1)
+    	{
+			g_LedPair.On();
 
-		EsbSendPairing();
+			EsbSendPairing();
 
-		__WFE();
-		msDelay(10);
-    	g_LedPair.Off();
+			__WFE();
+			msDelay(10);
+			g_LedPair.Off();
+    	}
     }
 
     g_Uart.printf("Run mode\r\n");

@@ -53,9 +53,9 @@ extern UART g_Uart;
 static const AccelSensorCfg_t s_AccelCfg = {
 	.DevAddr = 0,// SPI CS index,
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
-	.Freq = 50000,
+	.Freq = 200000,
 	.Scale = 8,
-	.FltrFreq = 20000,
+	.FltrFreq = 50000,
 	.Inter = 1,
 	.IntPol = DEVINTR_POL_LOW,
 };
@@ -63,15 +63,15 @@ static const AccelSensorCfg_t s_AccelCfg = {
 static const GyroSensorCfg_t s_GyroCfg = {
 	.DevAddr = 0,//BMI323_I2C_7BITS_DEVADDR,
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
-	.Freq = 50000,
+	.Freq = 200000,
 	.Sensitivity = 500,
-	.FltrFreq = 20000,
+	.FltrFreq = 50000,
 };
 
 static const MagSensorCfg_t s_MagCfg = {
 	.DevAddr = 0,
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,//SENSOR_OPMODE_SINGLE,
-	.Freq = 50000,
+	.Freq = 200000,
 	.Precision = MAGSENSOR_PRECISION_HIGH,
 };
 

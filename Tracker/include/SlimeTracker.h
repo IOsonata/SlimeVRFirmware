@@ -103,7 +103,8 @@ typedef struct {
 	DeviceIntrf * const pGyroIntrf;
 	MagSensor * const pMag;
 	DeviceIntrf * const pMagIntrf;
-	uint8_t NbAxes;
+//	uint8_t NbAxes;
+	const char * const pDesc;
 } MotionDevice_t;
 #pragma pack(pop)
 

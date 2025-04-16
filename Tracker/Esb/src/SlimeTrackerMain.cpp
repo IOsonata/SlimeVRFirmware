@@ -60,6 +60,7 @@ SOFTWARE.
 #include "iopinctrl.h"
 #include "sensors/ag_bmi270.h"
 #include "sensors/ag_bmi323.h"
+#include "sensors/ag_icm456x.h"
 #include "sensors/mag_bmm350.h"
 #include "coredev/iopincfg.h"
 #include "adc_nrf52_saadc.h"
@@ -325,16 +326,18 @@ AgmIcm20948 g_Icm20948;
 
 AgBmi270 g_Bmi270;
 AgBmi323 g_Bmi323;
+AgIcm456x g_Icm456x;
 MagBmm350 g_Bmm350;
 
 ImuXiotFusion g_XiotFusion;
 
 static const MotionDevice_t s_MotionDevices[] = {
-	{&g_XiotFusion, &g_Bmi270, &g_Spi, &g_Bmi270, &g_Spi, &g_Bmm350, &g_I2c, 9},
-	{&g_XiotFusion, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, 9},
-	{&g_XiotFusion, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, nullptr, nullptr, 6},//&g_Bmm350, &g_I2c, 9},
-	{&g_XiotFusion, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, 9},
-	{&g_XiotFusion, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, 9},
+	{&g_XiotFusion, &g_Icm456x, &g_I2c, &g_Icm456x, &g_I2c, nullptr, nullptr, "XIotFusion, ICM45686_I"},
+	{&g_XiotFusion, &g_Bmi270, &g_Spi, &g_Bmi270, &g_Spi, &g_Bmm350, &g_I2c, "XIotFusion, BMI270_S, BMM350_I"},
+	{&g_XiotFusion, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, "XIotFusion, BMI270_I, BMM350_I"},
+	{&g_XiotFusion, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, nullptr, nullptr, "XIotFusion, BMI323_S"},//&g_Bmm350, &g_I2c, 9},
+	{&g_XiotFusion, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, "XIotFusion, ICM20948_S"},
+	{&g_XiotFusion, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, "XIotFusion, ICM20948_I"},
 };
 
 static const size_t s_NbMotionDevices = sizeof(s_MotionDevices) / sizeof(MotionDevice_t);

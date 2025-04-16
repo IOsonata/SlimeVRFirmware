@@ -119,7 +119,7 @@ void ImuIntHandler(int IntNo, void *pCtx)
 	if (g_pImu)
 	{
 		ImuQuat_t quat;
-
+#if 1
 		//g_Uart.printf("g_pImu->IntHandler()\r\n");
 		g_pImu->IntHandler();
 		//g_Uart.printf("g_pImu->IntHandler() - exit\r\n");
@@ -131,7 +131,14 @@ void ImuIntHandler(int IntNo, void *pCtx)
 		q[1] = quat.Q[1] * (1 << 15);
 		q[2] = quat.Q[2] * (1 << 15);
 		q[3] = quat.Q[3] * (1 << 15);
-#if 0
+
+#else
+		g_pAccel->IntHandler();
+		g_pGyro->IntHandler();
+
+		g_pAccel->Read(accdata);
+		g_pGyro->Read(gyrodata);
+
 		FusionVector gyroscope = {gyrodata.X, gyrodata.Y, gyrodata.Z}; // replace this with actual gyroscope data in degrees/s
 		FusionVector accelerometer = {accdata.X, accdata.Y, accdata.Z}; // replace this with actual accelerometer data in g
 		if (g_pMag)
@@ -146,12 +153,20 @@ void ImuIntHandler(int IntNo, void *pCtx)
 			FusionAhrsUpdateNoMagnetometer(&g_Fusion, gyroscope, accelerometer, 0.02);
 		}
 		FusionQuaternion fq = FusionAhrsGetQuaternion(&g_Fusion);
-
+/*
 		q[0] = fq.array[0] * (1 << 15);
 		q[1] = fq.array[1] * (1 << 15);
 		q[2] = fq.array[2] * (1 << 15);
 		q[3] = fq.array[3] * (1 << 15);
+*/
+		q[0] = g_Fusion.quaternion.array[0] * (1 << 15);
+		q[1] = g_Fusion.quaternion.array[1] * (1 << 15);
+		q[2] = g_Fusion.quaternion.array[2] * (1 << 15);
+		q[3] = g_Fusion.quaternion.array[3] * (1 << 15);
 #endif
+		//g_Uart.printf("%d %d %d %d\r\n", q[0], q[1], q[2], q[3]);
+
+
 	}
 	else
 	{
@@ -235,6 +250,7 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 			continue;
 		}
 		//g_Uart.printf("Iter %d\r\n", i);
+#if 0
 		switch (i)
 		{
 		case BMI270_BMM350_SPI:
@@ -255,7 +271,10 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 		default:
 			g_Uart.printf("Unknown motion sensor\r\n");
 		}
-
+#else
+		g_Uart.printf(pMotDev[i].pDesc);
+		g_Uart.printf("\r\n");
+#endif
 		res = pMotDev[i].pAccel->Init(s_AccelCfg, pMotDev[i].pAccIntrf, pTimer);
 		if (res == true)
 		{

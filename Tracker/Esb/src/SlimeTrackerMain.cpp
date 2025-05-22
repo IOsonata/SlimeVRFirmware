@@ -42,6 +42,7 @@ SOFTWARE.
 #include "fds.h"
 #include "nrf_cli.h"
 #include "nrf_cli_types.h"
+#include "nrf_drv_clock.h"
 
 #ifdef NRF52832_XXAA
 #include "uart/nrf_cli_uart.h"
@@ -331,7 +332,7 @@ MagBmm350 g_Bmm350;
 
 ImuXiotFusion g_XiotFusion;
 
-static const MotionDevice_t s_MotionDevices[] = {
+alignas(4) static const MotionDevice_t s_MotionDevices[] = {
 	{&g_XiotFusion, &g_Icm456x, &g_I2c, &g_Icm456x, &g_I2c, nullptr, nullptr, "XIotFusion, ICM45686_I"},
 	{&g_XiotFusion, &g_Bmi270, &g_Spi, &g_Bmi270, &g_Spi, &g_Bmm350, &g_I2c, "XIotFusion, BMI270_S, BMM350_I"},
 	{&g_XiotFusion, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, "XIotFusion, BMI270_I, BMM350_I"},
@@ -501,9 +502,12 @@ void UpdateRecord()
 void ClockStart( void )
 {
 
+	ret_code_t ret = nrf_drv_clock_init();
+    APP_ERROR_CHECK(ret);
+/*
     NRF_CLOCK->EVENTS_HFCLKSTARTED = 0;
     NRF_CLOCK->TASKS_HFCLKSTART = 1;
-    while (NRF_CLOCK->EVENTS_HFCLKSTARTED == 0);
+    while (NRF_CLOCK->EVENTS_HFCLKSTARTED == 0);*/
 }
 
 /** Check if the tracker was paired with a receiver */
@@ -675,6 +679,49 @@ void FdsGetReccord() {
 	}
 }
 
+void usbd_user_ev_handler(app_usbd_event_type_t event)
+{
+    switch (event)
+    {
+        case APP_USBD_EVT_STOPPED:
+            app_usbd_disable();
+            break;
+        case APP_USBD_EVT_POWER_DETECTED:
+            if (!nrf_drv_usbd_is_enabled())
+            {
+                app_usbd_enable();
+            }
+            break;
+        case APP_USBD_EVT_POWER_REMOVED:
+            app_usbd_stop();
+            break;
+        case APP_USBD_EVT_POWER_READY:
+            app_usbd_start();
+            break;
+        default:
+            break;
+    }
+}
+
+void usbd_init(void)
+{
+    ret_code_t ret;
+    static const app_usbd_config_t usbd_config = {
+        .ev_handler = app_usbd_event_execute,
+        .ev_state_proc = usbd_user_ev_handler
+    };
+    ret = app_usbd_init(&usbd_config);
+    APP_ERROR_CHECK(ret);
+
+    app_usbd_class_inst_t const * class_cdc_acm =
+            app_usbd_cdc_acm_class_inst_get(&nrf_cli_cdc_acm);
+    ret = app_usbd_class_append(class_cdc_acm);
+    APP_ERROR_CHECK(ret);
+
+    ret = app_usbd_power_events_enable();
+	APP_ERROR_CHECK(ret);
+}
+
 bool HardwareInit()
 {
 	ret_code_t rc;
@@ -684,9 +731,20 @@ bool HardwareInit()
 	IOPinCfg(s_ButPins, s_NbButPins);
 #endif
 
+#ifdef nRF52832
     g_Uart.Init(s_UartCfg);
-    msDelay(200);
-    g_Uart.printf("UART initialized %x\r\n", NRF_UICR->NRFFW[0]);
+#else
+    usbd_init();
+#endif
+
+    msDelay(1000);
+
+    // Command line
+    rc = nrf_cli_init(&s_Cli, (UARTDev_t*)g_Uart, true, true, NRF_LOG_SEVERITY_INFO);
+    APP_ERROR_CHECK(rc);
+
+    rc = nrf_cli_start(&s_Cli);
+    APP_ERROR_CHECK(rc);
 
     // LED init BlueIO_Tag_Evim board
     g_LedPair.Init(LED_BLUE_PORT, LED_BLUE_PIN, LED_BLUE_LOGIC);
@@ -709,6 +767,8 @@ bool HardwareInit()
 	// I2C init
 	g_I2c.Init(s_I2cCfg);
 
+    nrf_cli_print(&s_Cli, "SlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
+
 	// Sensor init
 	bool res = InitSensors(s_MotionDevices, s_NbMotionDevices, &g_Timer);
 
@@ -720,7 +780,7 @@ bool HardwareInit()
 	}
 	else
 	{
-		g_Uart.printf("No sensor found\r\n");
+		nrf_cli_print(&s_Cli, "No sensor found\r\n");
 	}
 
 	return res;
@@ -739,6 +799,7 @@ void ResetChkSum()
 	}
 	g_AppData.Cs = 0 - g_AppData.Cs;
 }
+
 
 //
 // Print a greeting message on standard output and exit.
@@ -768,7 +829,7 @@ int main()
 
     if (HardwareInit() == false)
     {
-    	g_Uart.printf("Hardware init...FAILED\r\n");
+    	cli_printf("Hardware init...FAILED\r\n");
     	while(1)
     	{
     		g_LedPair.Off();
@@ -780,15 +841,9 @@ int main()
     	}
     }
 
-    // Command line
-    err_code = nrf_cli_init(&s_Cli, (UARTDev_t*)g_Uart, true, true, NRF_LOG_SEVERITY_INFO);
-    APP_ERROR_CHECK(err_code);
-
-    err_code = nrf_cli_start(&s_Cli);
-    APP_ERROR_CHECK(err_code);
-
     //nrf_cli_print(&s_Cli, "\nNRF_CLI: SlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
-    g_Uart.printf("SlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
+ //   nrf_cli_print(&s_Cli, "SlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
+//	nrf_cli_process(&s_Cli);
 
     EsbInit();
 
@@ -797,7 +852,7 @@ int main()
     if (IsPaired() == false)
     {
     	//    	nrf_cli_print(&s_Cli, "Pairing mode\n");
-    	g_Uart.printf("Pairing mode\r\n");
+    	cli_printf("Pairing mode\r\n");
     	while (1)
     	{
 			g_LedPair.On();
@@ -810,7 +865,7 @@ int main()
     	}
     }
 
-    g_Uart.printf("Run mode\r\n");
+    cli_printf("Run mode\r\n");
 	g_LedPair.Off();
 	g_LedRun.On();
 
@@ -824,13 +879,13 @@ int main()
 	uint64_t period = g_Timer.EnableTimerTrigger(SEND_DEV_INFO_TIMER_TRIG_NO, SEND_DEV_INFO_PERIOD, TIMER_TRIG_TYPE_CONTINUOUS, TimerEvtHandler);
 	if (period == 0)
 	{
-		g_Uart.printf("Timer trigger 0 failed\r\n");
+		cli_printf("Timer trigger 0 failed\r\n");
 	}
 
 	period = g_Timer.EnableTimerTrigger(BATTERY_MEASURE_TIMER_TRIG_NO, BATTERY_MEASURE_PERIOD, TIMER_TRIG_TYPE_CONTINUOUS, TimerEvtHandler);
 	if (period == 0)
 	{
-		g_Uart.printf("Timer trigger 1 failed\r\n");
+		cli_printf("Timer trigger 1 failed\r\n");
 	}
 
 #ifdef BUT_PINS
@@ -846,12 +901,12 @@ int main()
 
 void cmd_info(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 {
-	g_Uart.printf("\r\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
+	cli_printf("\r\nSlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
 }
 
 void cmd_reboot(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 {
-	g_Uart.printf("Rebooting..\r\n");
+	nrf_cli_print(p_cli, "Rebooting..\r\n");
 
     msDelay(100);
 
@@ -860,7 +915,7 @@ void cmd_reboot(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 
 void cmd_pair(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 {
-	g_Uart.printf("Entering to pairing mode\n\r");
+	nrf_cli_print(p_cli, "Entering to pairing mode\n\r");
 
 	// Erase the current pairing info in FDS
 	ClearPairingInfo();
@@ -868,10 +923,10 @@ void cmd_pair(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 
 void cmd_help(nrf_cli_t const * p_cli, size_t argc, char ** argv)
 {
-    g_Uart.printf("info		: Display device info\r\n");
-	g_Uart.printf("reboot	: Reboot device\r\n");
-	g_Uart.printf("pair 	: Erase existing paired data and reboot to pairing mode\r\n");
-	g_Uart.printf("help		: \r\n");
+	nrf_cli_print(p_cli, "info		: Display device info\r\n");
+	nrf_cli_print(p_cli, "reboot	: Reboot device\r\n");
+	nrf_cli_print(p_cli, "pair 	: Erase existing paired data and reboot to pairing mode\r\n");
+	nrf_cli_print(p_cli, "help		: \r\n");
 }
 
 NRF_CLI_CMD_REGISTER(info, NULL, "Display device information", cmd_info);

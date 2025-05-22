@@ -223,7 +223,11 @@ bool EsbInit(void)
 #else // NRF_ESB_LEGACY
     nrf_esb_config_t nrf_esb_config         = NRF_ESB_LEGACY_CONFIG;
 #endif // NRF_ESB_LEGACY
+#ifdef NRF52832_XXAA
     nrf_esb_config.tx_output_power 			= NRF_ESB_TX_POWER_4DBM;
+#else
+    nrf_esb_config.tx_output_power 			= NRF_ESB_TX_POWER_8DBM;
+#endif
     nrf_esb_config.retransmit_count         = 6;
     nrf_esb_config.selective_auto_ack       = false;
     nrf_esb_config.protocol                 = NRF_ESB_PROTOCOL_ESB_DPL;

@@ -36,6 +36,10 @@ SOFTWARE.
 #ifndef __SLIMETRACKER_H__
 #define __SLIMETRACKER_H__
 
+#include <stdarg.h>
+
+#include "nrf_cli.h"
+
 #include "coredev/timer.h"
 #include "coredev/i2c.h"
 #include "coredev/spi.h"
@@ -120,6 +124,10 @@ void SendMotionData(AccelSensorData_t &Accel, int16_t Quat[4]);
 void ClearPairingInfo();
 void ADVEventHandler(Device *pDevObj, DEV_EVT Evt);
 void MeasureBatteryVoltage();
+
+#define cli_printf(Format, ...) nrf_cli_fprintf(&s_Cli, NRF_CLI_DEFAULT, Format, ##__VA_ARGS__)
+
+extern nrf_cli_t const s_Cli;
 
 #ifdef __cplusplus
 }

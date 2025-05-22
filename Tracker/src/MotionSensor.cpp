@@ -53,9 +53,9 @@ extern UART g_Uart;
 static const AccelSensorCfg_t s_AccelCfg = {
 	.DevAddr = 0,// SPI CS index,
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
-	.Freq = 200000,
+	.Freq = 50000,
 	.Scale = 8,
-	.FltrFreq = 50000,
+	.FltrFreq = 60000,
 	.Inter = 1,
 	.IntPol = DEVINTR_POL_LOW,
 };
@@ -63,15 +63,15 @@ static const AccelSensorCfg_t s_AccelCfg = {
 static const GyroSensorCfg_t s_GyroCfg = {
 	.DevAddr = 0,//BMI323_I2C_7BITS_DEVADDR,
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
-	.Freq = 200000,
-	.Sensitivity = 500,
-	.FltrFreq = 50000,
+	.Freq = 50000,
+	.Sensitivity = 4000,
+	.FltrFreq = 60000,
 };
 
 static const MagSensorCfg_t s_MagCfg = {
 	.DevAddr = 0,
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,//SENSOR_OPMODE_SINGLE,
-	.Freq = 200000,
+	.Freq = 100000,
 	.Precision = MAGSENSOR_PRECISION_HIGH,
 };
 
@@ -272,24 +272,24 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 			g_Uart.printf("Unknown motion sensor\r\n");
 		}
 #else
-		g_Uart.printf(pMotDev[i].pDesc);
-		g_Uart.printf("\r\n");
+		cli_printf(pMotDev[i].pDesc);
+		cli_printf("\r\n");
 #endif
 		res = pMotDev[i].pAccel->Init(s_AccelCfg, pMotDev[i].pAccIntrf, pTimer);
 		if (res == true)
 		{
-			g_Uart.printf("Accel found\r\n");
+			cli_printf("Accel found\r\n");
 
 			res = pMotDev[i].pGyro->Init(s_GyroCfg, pMotDev[i].pGyroIntrf, pTimer);
 			if (res == true)
 			{
-				g_Uart.printf("Gyro found\r\n");
+				cli_printf("Gyro found\r\n");
 				if (pMotDev[i].pMag)
 				{
 					res = pMotDev[i].pMag->Init(s_MagCfg, pMotDev[i].pMagIntrf, pTimer);
 					if (res)
 					{
-						g_Uart.printf("Mag found\r\n");
+						cli_printf("Mag found\r\n");
 						g_pMag = pMotDev[i].pMag;
 					}
 				}
@@ -309,7 +309,7 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 				}
 				else
 				{
-					g_Uart.printf("No imu\r\n");
+					cli_printf("No imu\r\n");
 
 					g_pAccel = pMotDev[i].pAccel;
 					g_pGyro = pMotDev[i].pGyro;
@@ -322,7 +322,7 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 					}
 					FusionAhrsInitialise(&g_Fusion);
 					res = true;
-					g_Uart.printf("Sensor found\r\n");
+					cli_printf("Sensor found\r\n");
 					break;
 				}
 			}

@@ -679,6 +679,7 @@ void FdsGetReccord() {
 	}
 }
 
+#ifndef NRF52832_XXAA
 void usbd_user_ev_handler(app_usbd_event_type_t event)
 {
     switch (event)
@@ -721,6 +722,7 @@ void usbd_init(void)
     ret = app_usbd_power_events_enable();
 	APP_ERROR_CHECK(ret);
 }
+#endif
 
 bool HardwareInit()
 {
@@ -731,7 +733,7 @@ bool HardwareInit()
 	IOPinCfg(s_ButPins, s_NbButPins);
 #endif
 
-#ifdef nRF52832
+#ifdef NRF52832_XXAA
     g_Uart.Init(s_UartCfg);
 #else
     usbd_init();

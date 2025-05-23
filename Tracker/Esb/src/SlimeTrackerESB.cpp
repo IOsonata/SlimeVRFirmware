@@ -44,7 +44,7 @@ SOFTWARE.
 
 #include "SlimeTrackerESB.h"
 
-extern UART g_Uart;
+//extern UART g_Uart;
 
 static const uint8_t DiscBaseAddr0[4] = {0x62, 0x39, 0x8A, 0xF2};
 static const uint8_t DiscBaseAddr1[4] = {0x28, 0xFF, 0x50, 0xB8};
@@ -128,28 +128,28 @@ void EsbEventHandler(nrf_esb_evt_t const * pEvt)
             // Get the most recent element from the RX FIFO.
             while (nrf_esb_read_rx_payload(&payload) == NRF_SUCCESS)
             {
-				g_Uart.printf("len = %d, rx_payload.data[0] = %02x ", payload.length, payload.data[0]);
+				cli_printf("len = %d, rx_payload.data[0] = %02x ", payload.length, payload.data[0]);
 				for (int i = 1; i < payload.length; i++)
 				{
-					g_Uart.printf("%02x ", payload.data[i]);
+					cli_printf("%02x ", payload.data[i]);
 				}
-				g_Uart.printf("\r\n");
+				cli_printf("\r\n");
 				if (!IsPaired())
 				{
 					if (payload.length == 8)
 					{
 						// This is the pairing packet which contains the receiver MAC address
 
-						g_Uart.printf("rx_payload.data[0] = %02x ", payload.data[0]);
+						cli_printf("rx_payload.data[0] = %02x ", payload.data[0]);
 						for (int i = 1; i < 8; i++)
 						{
-							g_Uart.printf("%02x ", payload.data[i]);
+							cli_printf("%02x ", payload.data[i]);
 						}
-						g_Uart.printf("\r\n");
+						cli_printf("\r\n");
 
 						if (payload.data[0] == s_PairCrc)
 						{
-							g_Uart.printf("Paired tracker id:%d\r\n", payload.data[1]);
+							cli_printf("Paired tracker id:%d\r\n", payload.data[1]);
 							SetTrackerId(payload.data[1]);
 							// Save receiver MAC address
 							uint64_t mac = 0;
@@ -166,7 +166,7 @@ void EsbEventHandler(nrf_esb_evt_t const * pEvt)
 					if (payload.length == 4)
 					{
 						// unexpected packet
-						g_Uart.printf("Error\r\n");
+						cli_printf("Error\r\n");
 					}
 				}
             }

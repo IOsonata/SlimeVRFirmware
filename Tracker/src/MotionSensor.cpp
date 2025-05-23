@@ -48,7 +48,7 @@ SOFTWARE.
 #include "Fusion/Fusion.h"
 #include "SlimeTracker.h"
 
-extern UART g_Uart;
+//extern UART g_Uart;
 
 static const AccelSensorCfg_t s_AccelCfg = {
 	.DevAddr = 0,// SPI CS index,
@@ -71,7 +71,7 @@ static const GyroSensorCfg_t s_GyroCfg = {
 static const MagSensorCfg_t s_MagCfg = {
 	.DevAddr = 0,
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,//SENSOR_OPMODE_SINGLE,
-	.Freq = 100000,
+	.Freq = 50000,
 	.Precision = MAGSENSOR_PRECISION_HIGH,
 };
 

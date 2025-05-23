@@ -391,6 +391,17 @@ NRF_CLI_DEF(s_Cli,
             '\r',
             CLI_EXAMPLE_LOG_QUEUE_SIZE);
 #endif
+
+void hfClockEvtHandler(nrf_drv_clock_evt_type_t Evt)
+{
+
+}
+
+nrf_drv_clock_handler_item_t s_hfClockHandler = {
+	.p_next = 0,
+	.event_handler = hfClockEvtHandler,
+};
+
 // Need this for icm20948
 uint64_t inv_icm20948_get_time_us(void)
 {
@@ -504,6 +515,9 @@ void ClockStart( void )
 
 	ret_code_t ret = nrf_drv_clock_init();
     APP_ERROR_CHECK(ret);
+
+    nrf_drv_clock_hfclk_request(&s_hfClockHandler);
+
 /*
     NRF_CLOCK->EVENTS_HFCLKSTARTED = 0;
     NRF_CLOCK->TASKS_HFCLKSTART = 1;

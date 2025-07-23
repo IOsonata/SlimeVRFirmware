@@ -63,9 +63,11 @@ SOFTWARE.
 #include "sensors/ag_bmi323.h"
 #include "sensors/ag_icm456x.h"
 #include "sensors/mag_bmm350.h"
+#include "sensors/mag_ak09940.h"
 #include "coredev/iopincfg.h"
 #include "adc_nrf52_saadc.h"
 #include "imu/imu_xiot_fusion.h"
+#include "imu/imu_vqf.h"
 //#define INVN
 
 #ifdef INVN
@@ -329,11 +331,14 @@ AgBmi270 g_Bmi270;
 AgBmi323 g_Bmi323;
 AgIcm456x g_Icm456x;
 MagBmm350 g_Bmm350;
+MagAk09940 g_Ak09940;
 
 ImuXiotFusion g_XiotFusion;
+ImuVqf g_Vqf;
 
 alignas(4) static const MotionDevice_t s_MotionDevices[] = {
-	{&g_XiotFusion, &g_Icm456x, &g_I2c, &g_Icm456x, &g_I2c, nullptr, nullptr, "XIotFusion, ICM45686_I"},
+//	{&g_XiotFusion, &g_Icm456x, &g_I2c, &g_Icm456x, &g_I2c, nullptr, nullptr, "XIotFusion, ICM45686_I"},
+	{&g_Vqf, &g_Icm456x, &g_I2c, &g_Icm456x, &g_I2c, &g_Ak09940, g_Icm456x, "XIotFusion, ICM45686_I"},
 	{&g_XiotFusion, &g_Bmi270, &g_Spi, &g_Bmi270, &g_Spi, &g_Bmm350, &g_I2c, "XIotFusion, BMI270_S, BMM350_I"},
 	{&g_XiotFusion, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, "XIotFusion, BMI270_I, BMM350_I"},
 	{&g_XiotFusion, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, nullptr, nullptr, "XIotFusion, BMI323_S"},//&g_Bmm350, &g_I2c, 9},
@@ -628,7 +633,7 @@ void ClearPairingInfo()
 
 void ButEvtHandler(int IntNo, void *pCtx)
 {
-	if (IntNo == BUT_INT_NUMER)
+	if (IntNo == BUT_INT_NO)
 	{
 		uint8_t b0 = IOPinRead(s_ButPins[0].PortNo, s_ButPins[0].PinNo);
 		uint8_t b1 = IOPinRead(s_ButPins[1].PortNo, s_ButPins[1].PinNo);
@@ -785,6 +790,11 @@ bool HardwareInit()
 
     nrf_cli_print(&s_Cli, "SlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
 
+
+	// Mag interrupt init
+	IOPinConfig(MAG_INT_PORT, MAG_INT_PIN, MAG_INT_PINOP, IOPINDIR_INPUT, IOPINRES_PULLDOWN, IOPINTYPE_NORMAL);
+	IOPinEnableInterrupt(MAG_INT_NO, MAG_INT_PRIO, MAG_INT_PORT, MAG_INT_PIN, IOPINSENSE_HIGH_TRANSITION, MagIntHandler, nullptr);
+
 	// Sensor init
 	bool res = InitSensors(s_MotionDevices, s_NbMotionDevices, &g_Timer);
 
@@ -793,6 +803,9 @@ bool HardwareInit()
 		// IMU interrupt init
 		IOPinConfig(IMU_INT_PORT, IMU_INT_PIN, IMU_INT_PINOP, IOPINDIR_INPUT, IOPINRES_PULLUP, IOPINTYPE_NORMAL);
 		IOPinEnableInterrupt(IMU_INT_NO, IMU_INT_PRIO, IMU_INT_PORT, IMU_INT_PIN, IOPINSENSE_LOW_TRANSITION, ImuIntHandler, nullptr);
+
+		g_Ak09940.UpdateData();
+
 	}
 	else
 	{
@@ -905,7 +918,7 @@ int main()
 	}
 
 #ifdef BUT_PINS
-	IOPinEnableInterrupt(BUT_INT_NUMER, BUT_INT_PRIO, s_ButPins[0].PortNo, s_ButPins[0].PinNo, BUT_PIN_SENSE, ButEvtHandler, nullptr);
+	IOPinEnableInterrupt(BUT_INT_NO, BUT_INT_PRIO, s_ButPins[0].PortNo, s_ButPins[0].PinNo, BUT_PIN_SENSE, ButEvtHandler, nullptr);
 #endif
 
     while (true)

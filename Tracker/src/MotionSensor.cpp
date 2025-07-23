@@ -55,7 +55,7 @@ static const AccelSensorCfg_t s_AccelCfg = {
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
 	.Freq = 50000,
 	.Scale = 8,
-	.FltrFreq = 60000,
+	.FltrFreq = 30000,
 	.Inter = 1,
 	.IntPol = DEVINTR_POL_LOW,
 };
@@ -65,7 +65,7 @@ static const GyroSensorCfg_t s_GyroCfg = {
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
 	.Freq = 50000,
 	.Sensitivity = 4000,
-	.FltrFreq = 60000,
+	.FltrFreq = 30000,
 };
 
 static const MagSensorCfg_t s_MagCfg = {
@@ -126,6 +126,7 @@ void ImuIntHandler(int IntNo, void *pCtx)
 		g_pImu->Read(quat);
 		g_pImu->Read(accdata);
 		g_pImu->Read(gyrodata);
+		g_pImu->Read(magdata);
 
 		q[0] = quat.Q[0] * (1 << 15);
 		q[1] = quat.Q[1] * (1 << 15);
@@ -174,7 +175,7 @@ void ImuIntHandler(int IntNo, void *pCtx)
 		g_pGyro->IntHandler();
 		if (g_pMag)
 		{
-			g_pMag->IntHandler();
+			//g_pMag->IntHandler();
 		}
 		g_pAccel->Read(accdata);
 		g_pGyro->Read(gyrodata);
@@ -204,7 +205,9 @@ void ImuIntHandler(int IntNo, void *pCtx)
 
 	SendMotionData(accdata, q);
 
+
 	dt = g_pTimer->uSecond() - t;
+	//cli_printf("mag:%.4f %.4f %.4f\n", magdata.X, magdata.Y, magdata.Z);
 }
 
 void ImuEvtHandler(Device * const pDev, DEV_EVT Evt)
@@ -230,6 +233,22 @@ void ImuEvtHandler(Device * const pDev, DEV_EVT Evt)
 
 			break;
 	}
+}
+
+void MagIntHandler(int IntNo, void *pCtx)
+{
+	MagSensorRawData_t d;
+
+	if (g_pMag)
+	{
+		g_pMag->IntHandler();
+
+		g_pMag->Read(d);
+	}
+
+
+	//cli_printf("Mag int\n");
+	cli_printf("mag:%d %d %d\n", d.X, d.Y, d.Z);
 }
 
 bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * const pTimer)//DeviceIntrf * const pIntrf, Timer * const pTimer)
@@ -286,6 +305,8 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 				cli_printf("Gyro found\r\n");
 				if (pMotDev[i].pMag)
 				{
+					//pMotDev[i].pAccel->Enable();
+					pMotDev[i].pMagIntrf->Enable();
 					res = pMotDev[i].pMag->Init(s_MagCfg, pMotDev[i].pMagIntrf, pTimer);
 					if (res)
 					{

@@ -120,6 +120,7 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 SPI * const GetSpi(void);
 I2C * const GetI2c(void);
 void ImuIntHandler(int IntNo, void *pCtx);
+void MagIntHandler(int IntNo, void *pCtx);
 void SendMotionData(AccelSensorData_t &Accel, int16_t Quat[4]);
 void ClearPairingInfo();
 void ADVEventHandler(Device *pDevObj, DEV_EVT Evt);

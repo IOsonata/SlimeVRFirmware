@@ -56,9 +56,34 @@
 			<locationURI>PARENT-2-PROJECT_LOC/src/SlimeTrackerMain.cpp</locationURI>
 		</link>
 		<link>
+			<name>src/ag_icm456x.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/IOsonata/src/sensors/ag_icm456x.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/ag_icm456x.h</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/IOsonata/include/sensors/ag_icm456x.h</locationURI>
+		</link>
+		<link>
 			<name>src/board.h</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/src/board.h</locationURI>
+		</link>
+		<link>
+			<name>src/imu_vqf.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/IOsonata/src/imu/imu_vqf.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/mag_ak09940.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/IOsonata/src/sensors/mag_ak09940.cpp</locationURI>
+		</link>
+		<link>
+			<name>src/mag_ak09940.h</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/IOsonata/include/sensors/mag_ak09940.h</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

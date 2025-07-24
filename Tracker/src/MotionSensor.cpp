@@ -248,7 +248,7 @@ void MagIntHandler(int IntNo, void *pCtx)
 
 
 	//cli_printf("Mag int\n");
-	cli_printf("mag:%d %d %d\n", d.X, d.Y, d.Z);
+	//cli_printf("mag:%d %d %d\n", d.X, d.Y, d.Z);
 }
 
 bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * const pTimer)//DeviceIntrf * const pIntrf, Timer * const pTimer)

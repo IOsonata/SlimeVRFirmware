@@ -74,6 +74,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/vqf/vqf/cpp&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/external/fprintf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/integration/nrfx/legacy&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/components/libraries/atomic&quot;"/>
@@ -99,6 +100,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/components/softdevice/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/components/softdevice/s140/headers&quot;"/>
 								</option>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.348567713" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std" value="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.gnu17" valueType="enumerated"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1247360483" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.344911053" name="GNU Arm Cross C++ Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler">
@@ -126,6 +128,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/vqf/vqf/cpp&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/external/fprintf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/integration/nrfx/legacy&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/components/libraries/atomic&quot;"/>
@@ -153,6 +156,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.132939332" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1782458211" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.std.658627627" name="Language standard" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.std" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.std.gnucpp20" valueType="enumerated"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.509693509" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.928467700" name="GNU Arm Cross C Linker" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker">
@@ -181,6 +185,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../IOsonata/ARM/Nordic/nRF52/nRF52840/lib/Eclipse/Debug&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.usenewlibnano.1544312897" name="Use newlib-nano (--specs=nano.specs)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.usenewlibnano" value="true" valueType="boolean"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.useprintffloat.2087715562" name="Use float with nano printf (-u _printf_float)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.linker.useprintffloat" value="true" valueType="boolean"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.input.1175105938" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -281,6 +286,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/vqf/vqf/cpp&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/external/fprintf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/integration/nrfx/legacy&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/components/libraries/atomic&quot;"/>
@@ -306,6 +312,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/components/softdevice/common&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/components/softdevice/s140/headers&quot;"/>
 								</option>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.699094253" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std" value="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.gnu17" valueType="enumerated"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.637472148" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.1198981663" name="GNU Arm Cross C++ Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler">
@@ -334,6 +341,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/vqf/vqf/cpp&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/external/fprintf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/integration/nrfx/legacy&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/components/libraries/atomic&quot;"/>
@@ -361,6 +369,7 @@
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.371815404" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.639100360" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.std.115938190" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.std" value="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.std.gnucpp20" valueType="enumerated"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1979068456" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input"/>
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.2086847724" name="GNU Arm Cross C Linker" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker">
@@ -489,6 +498,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/vqf/vqf/cpp&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/external/fprintf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/integration/nrfx/legacy&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/components/libraries/atomic&quot;"/>
@@ -542,6 +552,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/vqf/vqf/cpp&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/external/fprintf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/integration/nrfx/legacy&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/components/libraries/atomic&quot;"/>
@@ -696,6 +707,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/vqf/vqf/cpp&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/external/fprintf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/integration/nrfx/legacy&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/components/libraries/atomic&quot;"/>
@@ -748,6 +760,7 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/vqf/vqf/cpp&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/external/fprintf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/integration/nrfx/legacy&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nRF5_SDK/components/libraries/atomic&quot;"/>

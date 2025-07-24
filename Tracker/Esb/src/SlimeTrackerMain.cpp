@@ -338,7 +338,7 @@ ImuVqf g_Vqf;
 
 alignas(4) static const MotionDevice_t s_MotionDevices[] = {
 //	{&g_XiotFusion, &g_Icm456x, &g_I2c, &g_Icm456x, &g_I2c, nullptr, nullptr, "XIotFusion, ICM45686_I"},
-	{&g_Vqf, &g_Icm456x, &g_I2c, &g_Icm456x, &g_I2c, &g_Ak09940, g_Icm456x, "XIotFusion, ICM45686_I"},
+	{&g_XiotFusion, &g_Icm456x, &g_I2c, &g_Icm456x, &g_I2c, &g_Ak09940, g_Icm456x, "XIotFusion, ICM45686_I"},
 	{&g_XiotFusion, &g_Bmi270, &g_Spi, &g_Bmi270, &g_Spi, &g_Bmm350, &g_I2c, "XIotFusion, BMI270_S, BMM350_I"},
 	{&g_XiotFusion, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, "XIotFusion, BMI270_I, BMM350_I"},
 	{&g_XiotFusion, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, nullptr, nullptr, "XIotFusion, BMI323_S"},//&g_Bmm350, &g_I2c, 9},
@@ -791,10 +791,6 @@ bool HardwareInit()
     nrf_cli_print(&s_Cli, "SlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
 
 
-	// Mag interrupt init
-	IOPinConfig(MAG_INT_PORT, MAG_INT_PIN, MAG_INT_PINOP, IOPINDIR_INPUT, IOPINRES_PULLDOWN, IOPINTYPE_NORMAL);
-	IOPinEnableInterrupt(MAG_INT_NO, MAG_INT_PRIO, MAG_INT_PORT, MAG_INT_PIN, IOPINSENSE_HIGH_TRANSITION, MagIntHandler, nullptr);
-
 	// Sensor init
 	bool res = InitSensors(s_MotionDevices, s_NbMotionDevices, &g_Timer);
 
@@ -804,7 +800,11 @@ bool HardwareInit()
 		IOPinConfig(IMU_INT_PORT, IMU_INT_PIN, IMU_INT_PINOP, IOPINDIR_INPUT, IOPINRES_PULLUP, IOPINTYPE_NORMAL);
 		IOPinEnableInterrupt(IMU_INT_NO, IMU_INT_PRIO, IMU_INT_PORT, IMU_INT_PIN, IOPINSENSE_LOW_TRANSITION, ImuIntHandler, nullptr);
 
-		g_Ak09940.UpdateData();
+		// Mag interrupt init
+		IOPinConfig(MAG_INT_PORT, MAG_INT_PIN, MAG_INT_PINOP, IOPINDIR_INPUT, IOPINRES_PULLDOWN, IOPINTYPE_NORMAL);
+		IOPinEnableInterrupt(MAG_INT_NO, MAG_INT_PRIO, MAG_INT_PORT, MAG_INT_PIN, IOPINSENSE_HIGH_TRANSITION, MagIntHandler, nullptr);
+
+		//g_Ak09940.Flush();
 
 	}
 	else

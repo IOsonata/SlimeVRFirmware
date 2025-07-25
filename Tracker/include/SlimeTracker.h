@@ -122,6 +122,7 @@ I2C * const GetI2c(void);
 void ImuIntHandler(int IntNo, void *pCtx);
 void MagIntHandler(int IntNo, void *pCtx);
 void SendMotionData(AccelSensorData_t &Accel, int16_t Quat[4]);
+void SendMotionDataMag(MagSensorData_t &Accel, int16_t Quat[4]);
 void ClearPairingInfo();
 void ADVEventHandler(Device *pDevObj, DEV_EVT Evt);
 void MeasureBatteryVoltage();

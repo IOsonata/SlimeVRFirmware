@@ -62,7 +62,8 @@ static EsbPacket_t s_EsbPacket[] = {
 		.PktLen = 16/*sizeof(EsbPktDevInfo_t)*/,
 		.DevInfo = {
 			.Id = 0,
-			.ImuId = 12,
+			.ImuId = 16,
+			.MagId = 2,
 			.FwBuild = (uint16_t)((BUILD_YEAR - 20) << 9) | (BUILD_MONTH << 5) | BUILD_DAY,
 			.FwMajor = FIRMWARE_VERSION >> 8,
 			.FwMinor = FIRMWARE_VERSION & 0xFF,
@@ -85,16 +86,24 @@ static EsbPacket_t s_EsbPacket[] = {
 		.Status =  {
 			.Id = 3,
 		}
-	}
+	},
+	{
+		.PktLen = 16/*sizeof(EsbPktStatus_t)*/,
+		.MagQuat =  {
+			.Id = 4,
+		}
+	},
 };
 
 EsbPktDevInfo_t &g_EsbPktDevInfo = s_EsbPacket[ESBPKT_TYPE_DEVINFO].DevInfo;
 
 EsbPktPrecisionAccQuat_t &g_EsbPktPrecisionAccQuat = s_EsbPacket[ESBPKT_TYPE_PRECISE_QUAT].PreciseQuat;
 
-EsbPktAccQuat_t &g_EsbPktAccQuat = s_EsbPacket[ESBPKT_TYPE_QUAT].Quat;
+EsbPktQuat_t &g_EsbPktQuat = s_EsbPacket[ESBPKT_TYPE_ACCQUAT].Quat;
 
 EsbPktStatus_t &g_EsbPktStatus = s_EsbPacket[ESBPKT_TYPE_STATUS].Status;
+
+EsbPktMagQuat_t &g_EsbPktMagQuat = s_EsbPacket[ESBPKT_TYPE_MAGQUAT].MagQuat;
 
 /** Calculate CRC compliant with SlimeVR project */
 uint8_t slime_crc8_ccitt(uint8_t val, const void *buf, size_t cnt)
@@ -290,12 +299,13 @@ bool EsbSendPairing(void)
 	return res == NRF_SUCCESS;
 }
 
-void SetEsbPktTrackerId(uint8_t TrakerId)
+void SetEsbPktTrackerId(uint8_t TrackerId)
 {
-	g_EsbPktDevInfo.TrackerId = TrakerId;
-	g_EsbPktPrecisionAccQuat.TrackerId = TrakerId;
-	g_EsbPktAccQuat.TrackerId = TrakerId;
-	g_EsbPktStatus.TrackerId = TrakerId;
+	g_EsbPktDevInfo.TrackerId = TrackerId;
+	g_EsbPktPrecisionAccQuat.TrackerId = TrackerId;
+	g_EsbPktQuat.TrackerId = TrackerId;
+	g_EsbPktStatus.TrackerId = TrackerId;
+	g_EsbPktMagQuat.TrackerId = TrackerId;
 }
 
 /** Send packet containing sensor's raw data over ESB*/
@@ -316,6 +326,25 @@ void EsbPktUpdateImu(AccelSensorData_t &Accel, int16_t Quat[4])
 	g_EsbPktPrecisionAccQuat.Quat[3] = Quat[0];
 }
 
+void EsbPktUpdateMagImu(AccelSensorData_t &Accel, MagSensorData_t &Mag, int16_t Quat[4])
+{
+	g_EsbPktPrecisionAccQuat.Acc[0] = Accel.X * (1<<7);
+	g_EsbPktPrecisionAccQuat.Acc[1] = Accel.Y * (1<<7);
+	g_EsbPktPrecisionAccQuat.Acc[2] = Accel.Z * (1<<7);
+	g_EsbPktPrecisionAccQuat.Quat[0] = Quat[1];
+	g_EsbPktPrecisionAccQuat.Quat[1] = Quat[2];
+	g_EsbPktPrecisionAccQuat.Quat[2] = Quat[3];
+	g_EsbPktPrecisionAccQuat.Quat[3] = Quat[0];
+
+	g_EsbPktMagQuat.Mag[0] = Mag.X * (1<<10);
+	g_EsbPktMagQuat.Mag[1] = Mag.Y * (1<<10);
+	g_EsbPktMagQuat.Mag[2] = Mag.Z * (1<<10);
+	g_EsbPktMagQuat.Quat[0] = Quat[1];
+	g_EsbPktMagQuat.Quat[1] = Quat[2];
+	g_EsbPktMagQuat.Quat[2] = Quat[3];
+	g_EsbPktMagQuat.Quat[3] = Quat[0];
+}
+
 void SendMotionData(AccelSensorData_t &Accel, int16_t Quat[4])
 {
 	g_EsbPktPrecisionAccQuat.Acc[0] = Accel.X * (1 << 7);
@@ -329,6 +358,22 @@ void SendMotionData(AccelSensorData_t &Accel, int16_t Quat[4])
 //	EsbSendPacket(ESBPKT_TYPE_PRECISE_QUAT);
 	EsbSendData((uint8_t*) s_EsbPacket[ESBPKT_TYPE_PRECISE_QUAT].Data,
 			s_EsbPacket[ESBPKT_TYPE_PRECISE_QUAT].PktLen);
+}
+
+void SendMotionDataMag(MagSensorData_t &Mag, int16_t Quat[4])
+{
+	g_EsbPktMagQuat.Quat[0] = Quat[1];
+	g_EsbPktMagQuat.Quat[1] = Quat[2];
+	g_EsbPktMagQuat.Quat[2] = Quat[3];
+	g_EsbPktMagQuat.Quat[3] = Quat[0];
+
+	g_EsbPktMagQuat.Mag[0] = Mag.X * 0.01 * (float)(1 << 10);
+	g_EsbPktMagQuat.Mag[1] = Mag.Y * 0.01 * (float)(1 << 10);
+	g_EsbPktMagQuat.Mag[2] = Mag.Z * 0.01 * (float)(1 << 10);
+
+//	EsbSendPacket(ESBPKT_TYPE_PRECISE_QUAT);
+	EsbSendData((uint8_t*) s_EsbPacket[ESBPKT_TYPE_MAGQUAT].Data,
+			s_EsbPacket[ESBPKT_TYPE_MAGQUAT].PktLen);
 }
 
 extern volatile float g_battVolt;

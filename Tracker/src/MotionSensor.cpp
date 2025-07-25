@@ -73,6 +73,7 @@ static const MagSensorCfg_t s_MagCfg = {
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,//SENSOR_OPMODE_SINGLE,
 	.Freq = 50000,
 	.Precision = MAGSENSOR_PRECISION_HIGH,
+	.bFifoEn = true,
 };
 
 #if 0
@@ -204,7 +205,10 @@ void ImuIntHandler(int IntNo, void *pCtx)
 	}
 
 	SendMotionData(accdata, q);
-
+	if (g_pMag)
+	{
+		SendMotionDataMag(magdata, q);
+	}
 
 	dt = g_pTimer->uSecond() - t;
 	//cli_printf("mag:%.4f %.4f %.4f\n", magdata.X, magdata.Y, magdata.Z);
@@ -237,7 +241,7 @@ void ImuEvtHandler(Device * const pDev, DEV_EVT Evt)
 
 void MagIntHandler(int IntNo, void *pCtx)
 {
-	MagSensorRawData_t d;
+	MagSensorData_t d;
 
 	if (g_pMag)
 	{
@@ -248,7 +252,7 @@ void MagIntHandler(int IntNo, void *pCtx)
 
 
 	//cli_printf("Mag int\n");
-	//cli_printf("mag:%d %d %d\n", d.X, d.Y, d.Z);
+	cli_printf("mag:%.4f %.4f %.4f\n", d.X, d.Y, d.Z);
 }
 
 bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * const pTimer)//DeviceIntrf * const pIntrf, Timer * const pTimer)

@@ -54,8 +54,9 @@ SOFTWARE.
 typedef enum {
 	ESBPKT_TYPE_DEVINFO,
 	ESBPKT_TYPE_PRECISE_QUAT,
-	ESBPKT_TYPE_QUAT,
-	ESBPKT_TYPE_STATUS
+	ESBPKT_TYPE_ACCQUAT,
+	ESBPKT_TYPE_STATUS,
+	ESBPKT_TYPE_MAGQUAT,
 } ESBPKT_TYPE;
 
 typedef struct {
@@ -85,8 +86,8 @@ typedef struct {
 typedef struct {
 	uint8_t Id;					//!< Packet id = 1
 	uint8_t TrackerId;
-	uint16_t Quat[4];			//!< Fixed point 15 format
-	uint16_t Acc[3];			//!< Fixed point 7 format
+	int16_t Quat[4];			//!< Fixed point 15 format
+	int16_t Acc[3];			//!< Fixed point 7 format
 } EsbPktPrecisionAccQuat_t;
 
 typedef struct {
@@ -96,9 +97,9 @@ typedef struct {
 	uint8_t BatVolt;
 	uint8_t SensorTemp;			//!< Sensor temperature
 	uint32_t Q;	// ???
-	uint16_t Acc[3];
+	int16_t Acc[3];
 	uint8_t Rssi;
-} EsbPktAccQuat_t;
+} EsbPktQuat_t;
 
 typedef struct {
 	uint8_t Id;					//!< Packet id = 3
@@ -109,13 +110,21 @@ typedef struct {
 } EsbPktStatus_t;
 
 typedef struct {
+	uint8_t Id;					//!< Packet id = 4
+	uint8_t TrackerId;
+	int16_t Quat[4];			//!< Fixed point 15 format
+	int16_t Mag[3];			//!< Fixed point 10 format
+} EsbPktMagQuat_t;
+
+typedef struct {
 	size_t PktLen;
 	union {
 		EWsbPktHdr_t Hdr;
 		EsbPktDevInfo_t DevInfo;
 		EsbPktPrecisionAccQuat_t PreciseQuat;
-		EsbPktAccQuat_t Quat;
+		EsbPktQuat_t Quat;
 		EsbPktStatus_t Status;
+		EsbPktMagQuat_t MagQuat;
 		uint8_t Data[16];
 	};
 } EsbPacket_t;
@@ -139,9 +148,11 @@ void SetEsbPktTrackerId(uint8_t TrakerId);
 bool EsbSendPacket(ESBPKT_TYPE PktType);
 static inline bool EsbSendDeviceInfo() { return EsbSendPacket(ESBPKT_TYPE_DEVINFO); }
 static inline bool EsbSendPreciseQuat() { return EsbSendPacket(ESBPKT_TYPE_PRECISE_QUAT); }
-static inline bool EsbSendQuat() { return EsbSendPacket(ESBPKT_TYPE_QUAT); }
+static inline bool EsbSendAccQuat() { return EsbSendPacket(ESBPKT_TYPE_ACCQUAT); }
 static inline bool EsbSendStatus() { return EsbSendPacket(ESBPKT_TYPE_STATUS); }
+static inline bool EsbSendMagQuat() { return EsbSendPacket(ESBPKT_TYPE_MAGQUAT); }
 void EsbPktUpdateImu(AccelSensorData_t &Accel, int16_t Quat[4]);
+void EsbPktUpdateMagImu(AccelSensorData_t &Accel, MagSensorData_t &Mag, int16_t Quat[4]);
 void UpdateBattLevel();
 
 #ifdef __cplusplus

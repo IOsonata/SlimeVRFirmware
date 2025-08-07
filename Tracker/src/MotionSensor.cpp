@@ -55,7 +55,7 @@ static const AccelSensorCfg_t s_AccelCfg = {
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
 	.Freq = 50000,
 	.Scale = 8,
-	.FltrFreq = 30000,
+	.FltrFreq = 0,
 	.Inter = 1,
 	.IntPol = DEVINTR_POL_LOW,
 };
@@ -65,7 +65,7 @@ static const GyroSensorCfg_t s_GyroCfg = {
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,
 	.Freq = 50000,
 	.Sensitivity = 4000,
-	.FltrFreq = 30000,
+	.FltrFreq = 0,
 };
 
 static const MagSensorCfg_t s_MagCfg = {
@@ -73,7 +73,47 @@ static const MagSensorCfg_t s_MagCfg = {
 	.OpMode = SENSOR_OPMODE_CONTINUOUS,//SENSOR_OPMODE_SINGLE,
 	.Freq = 50000,
 	.Precision = MAGSENSOR_PRECISION_HIGH,
-	.bFifoEn = true,
+	.bFifoEn = false,
+};
+
+const float s_AccelBias[3] = {
+   -0.058f,   // X
+   -0.001f,   // Y
+   -0.112f    // Z
+};
+
+const float s_AccelSoftiron[3][3] = {
+    {  0.6569f, -0.4138f, -0.2773f },
+    { -0.4138f,  0.4748f,  0.1109f },
+    { -0.2773f,  0.1109f,  0.2663f }
+};
+
+static const float s_GyroBias[3] = {
+	 0.154f,   // X axis
+	-0.768f,   // Y axis
+	 0.596f    // Z axis
+};
+
+static const float s_MagGain[3][3] = {
+#if 0
+	{ 0.0454f,  0.0108f,  0.0124f },
+	{ 0.0108f,  0.0504f,  0.0063f },
+	{ 0.0124f,  0.0063f,  0.0522f }
+#else
+    { 0.0504f, -0.0108f,  0.0063f },
+    {-0.0108f,  0.0454f, -0.0124f },
+    { 0.0063f, -0.0124f,  0.0522f }
+#endif
+};
+
+static const float s_MagBias[3] = {
+#if 0
+	48.46, -65.60, 43.76
+#else
+    65.60f,   // X' = -(-65.60)
+   -48.46f,   // Y' = 48.46
+    43.76f    // Z unchanged
+#endif
 };
 
 #if 0
@@ -108,7 +148,7 @@ static const ImuCfg_t s_ImuCfg = {
 	.EvtHandler = ImuEvtHandler
 };
 
-uint64_t dt = 0;
+uint32_t dt = 0;
 void ImuIntHandler(int IntNo, void *pCtx)
 {
 	int16_t q[4];
@@ -126,8 +166,12 @@ void ImuIntHandler(int IntNo, void *pCtx)
 		//g_Uart.printf("g_pImu->IntHandler() - exit\r\n");
 		g_pImu->Read(quat);
 		g_pImu->Read(accdata);
-		g_pImu->Read(gyrodata);
-		g_pImu->Read(magdata);
+		//g_pImu->Read(gyrodata);
+
+		if (g_pMag)
+		{
+			g_pImu->Read(magdata);
+		}
 
 		q[0] = quat.Q[0] * (1 << 15);
 		q[1] = quat.Q[1] * (1 << 15);
@@ -204,14 +248,15 @@ void ImuIntHandler(int IntNo, void *pCtx)
 		q[3] = fq.array[3] * (1 << 15);
 	}
 
+	dt = g_pTimer->uSecond() - t;
+
 	SendMotionData(accdata, q);
 	if (g_pMag)
 	{
 		SendMotionDataMag(magdata, q);
 	}
 
-	dt = g_pTimer->uSecond() - t;
-	//cli_printf("mag:%.4f %.4f %.4f\n", magdata.X, magdata.Y, magdata.Z);
+	cli_printf("ITS:%d T:%.2f A:%.4f %.4f %.4f, G:%.4f %.4f %.4f, MTS: %d T:%.2f M:%.4f %.4f %.4f\n", (uint32_t)(accdata.Timestamp / 1000), accdata.Temp, accdata.X, accdata.Y, accdata.Z, gyrodata.X, gyrodata.Y, gyrodata.Z, (uint32_t)(magdata.Timestamp / 1000.0), magdata.Temp, magdata.X, magdata.Y, magdata.Z);
 }
 
 void ImuEvtHandler(Device * const pDev, DEV_EVT Evt)
@@ -242,17 +287,20 @@ void ImuEvtHandler(Device * const pDev, DEV_EVT Evt)
 void MagIntHandler(int IntNo, void *pCtx)
 {
 	MagSensorData_t d;
+	MagSensorRawData_t raw;
 
 	if (g_pMag)
 	{
 		g_pMag->IntHandler();
 
+		g_pMag->Read(raw);
 		g_pMag->Read(d);
+
 	}
 
 
 	//cli_printf("Mag int\n");
-	cli_printf("mag:%.4f %.4f %.4f\n", d.X, d.Y, d.Z);
+	//cli_printf("%.4f %.4f %.4f\n", d.X, d.Y, d.Z);
 }
 
 bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * const pTimer)//DeviceIntrf * const pIntrf, Timer * const pTimer)
@@ -307,6 +355,7 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 			if (res == true)
 			{
 				cli_printf("Gyro found\r\n");
+
 				if (pMotDev[i].pMag)
 				{
 					//pMotDev[i].pAccel->Enable();
@@ -316,12 +365,17 @@ bool InitSensors(const MotionDevice_t * const pMotDev, size_t Count, Timer * con
 					{
 						cli_printf("Mag found\r\n");
 						g_pMag = pMotDev[i].pMag;
+						g_pMag->SetCalibration(s_MagGain, s_MagBias);
 					}
 				}
 				if (pMotDev[i].pImuDev)
 				{
 					g_pAccel = pMotDev[i].pAccel;
+					g_pAccel->SetCalibration(s_AccelSoftiron, s_AccelBias);
+
 					g_pGyro = pMotDev[i].pGyro;
+					g_pGyro->SetCalibrationOffset(s_GyroBias);
+
 					res = pMotDev[i].pImuDev->Init(s_ImuCfg, g_pAccel, g_pGyro, g_pMag);
 					if (res)
 					{

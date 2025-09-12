@@ -337,7 +337,7 @@ ImuXiotFusion g_XiotFusion;
 ImuVqf g_Vqf;
 
 alignas(4) static const MotionDevice_t s_MotionDevices[] = {
-//	{&g_XiotFusion, &g_Icm456x, &g_I2c, &g_Icm456x, &g_I2c, nullptr, nullptr, "XIotFusion, ICM45686_I"},
+	{&g_XiotFusion, &g_Icm456x, &g_Spi, &g_Icm456x, &g_Spi, nullptr, nullptr, "XIotFusion, ICM45686_S"},
 	{&g_XiotFusion, &g_Icm456x, &g_I2c, &g_Icm456x, &g_I2c, &g_Ak09940, g_Icm456x, "XIotFusion, ICM45686_I"},
 	{&g_XiotFusion, &g_Bmi270, &g_Spi, &g_Bmi270, &g_Spi, &g_Bmm350, &g_I2c, "XIotFusion, BMI270_S, BMM350_I"},
 	{&g_XiotFusion, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, "XIotFusion, BMI270_I, BMM350_I"},

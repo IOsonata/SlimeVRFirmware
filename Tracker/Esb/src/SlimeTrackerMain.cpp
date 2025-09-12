@@ -58,6 +58,7 @@ SOFTWARE.
 #include "coredev/uart.h"
 #include "coredev/timer.h"
 #include "miscdev/led.h"
+#include "pwrmgnt/pm_npm2100.h"
 #include "iopinctrl.h"
 #include "sensors/ag_bmi270.h"
 #include "sensors/ag_bmi323.h"
@@ -788,6 +789,8 @@ bool HardwareInit()
 	// I2C init
 	g_I2c.Init(s_I2cCfg);
 
+
+
     nrf_cli_print(&s_Cli, "SlimeVR-Tracker nRF Vers: %d.%d.%d\n\r", g_AppInfo.Vers.Major, g_AppInfo.Vers.Minor, g_AppInfo.Vers.Build);
 
 
@@ -811,6 +814,12 @@ bool HardwareInit()
 	{
 		nrf_cli_print(&s_Cli, "No sensor found\r\n");
 	}
+
+	// Stop boot monitor from reseting
+	uint8_t regaddr = NPM2100_TIMER_TASKS_STOP_REG;
+	uint8_t d = 1;
+
+	g_I2c.Write(NPM2100_I2C_DEVICE_ADDR, &regaddr, 1, &d, 1);
 
 	return res;
 }

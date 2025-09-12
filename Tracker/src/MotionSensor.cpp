@@ -256,7 +256,7 @@ void ImuIntHandler(int IntNo, void *pCtx)
 		SendMotionDataMag(magdata, q);
 	}
 
-	cli_printf("ITS:%d T:%.2f A:%.4f %.4f %.4f, G:%.4f %.4f %.4f, MTS: %d T:%.2f M:%.4f %.4f %.4f\n", (uint32_t)(accdata.Timestamp / 1000), accdata.Temp, accdata.X, accdata.Y, accdata.Z, gyrodata.X, gyrodata.Y, gyrodata.Z, (uint32_t)(magdata.Timestamp / 1000.0), magdata.Temp, magdata.X, magdata.Y, magdata.Z);
+//	cli_printf("ITS:%d T:%.2f A:%.4f %.4f %.4f, G:%.4f %.4f %.4f, MTS: %d T:%.2f M:%.4f %.4f %.4f\n", (uint32_t)(accdata.Timestamp / 1000), accdata.Temp, accdata.X, accdata.Y, accdata.Z, gyrodata.X, gyrodata.Y, gyrodata.Z, (uint32_t)(magdata.Timestamp / 1000.0), magdata.Temp, magdata.X, magdata.Y, magdata.Z);
 }
 
 void ImuEvtHandler(Device * const pDev, DEV_EVT Evt)

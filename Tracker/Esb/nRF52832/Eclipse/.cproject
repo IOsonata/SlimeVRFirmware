@@ -68,7 +68,8 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../IOsonata/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/drivers/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/mdk&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable/mdk&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
@@ -116,7 +117,8 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../IOsonata/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/drivers/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/mdk&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable/mdk&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
@@ -268,7 +270,8 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../IOsonata/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/drivers/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/mdk&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable/mdk&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
@@ -317,7 +320,8 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../IOsonata/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/drivers/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/mdk&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable/mdk&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
@@ -469,7 +473,8 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../IOsonata/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/drivers/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/mdk&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable/mdk&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
@@ -518,7 +523,8 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../IOsonata/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/drivers/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/mdk&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable/mdk&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
@@ -669,7 +675,8 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../IOsonata/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/drivers/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/mdk&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable/mdk&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>
@@ -717,7 +724,8 @@
 									<listOptionValue builtIn="false" value="&quot;../../../../../IOsonata/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/drivers/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/mdk&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/bsp/stable/mdk&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/nrfx/hal&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Invn&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../../../../../external/Fusion&quot;"/>

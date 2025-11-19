@@ -335,7 +335,7 @@ MagBmm350 g_Bmm350;
 MagAk09940 g_Ak09940;
 
 ImuXiotFusion g_XiotFusion;
-ImuVqf g_Vqf;
+//ImuVqf g_Vqf;
 
 alignas(4) static const MotionDevice_t s_MotionDevices[] = {
 	{&g_XiotFusion, &g_Icm456x, &g_Spi, &g_Icm456x, &g_Spi, nullptr, nullptr, "XIotFusion, ICM45686_S"},

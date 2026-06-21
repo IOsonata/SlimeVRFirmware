@@ -33,6 +33,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ----------------------------------------------------------------------------*/
+#ifndef NRFX_SUCCESS
+// Some SDK configurations don't expose nrfx return codes.
+// Map to the SDK's standard success code.
+#define NRFX_SUCCESS NRF_SUCCESS
+#endif
 #include "nrf_esb.h"
 #include "sdk_common.h"
 #include "nrf.h"
@@ -45,7 +50,7 @@ SOFTWARE.
 #include "nrf_drv_clock.h"
 
 #ifdef NRF52832_XXAA
-#include "uart/nrf_cli_uart.h"
+//#include "uart/nrf_cli_uart.h"
 #else
 #include "cdc_acm/nrf_cli_cdc_acm.h"
 #endif
@@ -58,7 +63,8 @@ SOFTWARE.
 #include "coredev/uart.h"
 #include "coredev/timer.h"
 #include "miscdev/led.h"
-#include "pwrmgnt/pm_npm2100.h"
+// NOTE: Avoid pulling in pm_npm2100.h here to prevent macro redefinition warnings
+// and any transitive nrfx dependencies. We only need 2 constants for one I2C write.
 #include "iopinctrl.h"
 #include "sensors/ag_bmi270.h"
 #include "sensors/ag_bmi323.h"
@@ -83,6 +89,13 @@ SOFTWARE.
 
 #include "board.h"
 
+// Minimal NPM2100 definitions used by this file (boot monitor stop)
+#ifndef NPM2100_I2C_DEVICE_ADDR
+#define NPM2100_I2C_DEVICE_ADDR          0x74
+#endif
+#ifndef NPM2100_TIMER_TASKS_STOP_REG
+#define NPM2100_TIMER_TASKS_STOP_REG     0x0D
+#endif
 #define DEVICE_NAME			"BLYST-MOTION"
 
 #define RESET_MEMORY_TEST_BYTE  (0x0DUL)        /**< Known sequence written to a special register to check if this wake up is from System OFF. */

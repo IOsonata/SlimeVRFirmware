@@ -75,6 +75,7 @@ SOFTWARE.
 #include "adc_nrf52_saadc.h"
 #include "imu/imu_xiot_fusion.h"
 #include "imu/imu_vqf.h"
+#include "imu/imu_eqf.h"
 //#define INVN
 
 #ifdef INVN
@@ -347,17 +348,31 @@ AgIcm456x g_Icm456x;
 MagBmm350 g_Bmm350;
 MagAk09940 g_Ak09940;
 
+// Software fusion backend selector. Define one of IMU_FUSION_VQF or
+// IMU_FUSION_EQF to use that backend as the pImuDev for all sensor configs.
+// Default is the xio Fusion AHRS. EqF is 6-axis and needs an FPU.
+//#define IMU_FUSION_VQF
+//#define IMU_FUSION_EQF
+
 ImuXiotFusion g_XiotFusion;
-//ImuVqf g_Vqf;
+#if defined(IMU_FUSION_VQF)
+ImuVqf g_SwFusion;
+#define SW_FUSION	(&g_SwFusion)
+#elif defined(IMU_FUSION_EQF)
+ImuEqf g_SwFusion;
+#define SW_FUSION	(&g_SwFusion)
+#else
+#define SW_FUSION	(&g_XiotFusion)
+#endif
 
 alignas(4) static const MotionDevice_t s_MotionDevices[] = {
-	{&g_XiotFusion, &g_Icm456x, &g_Spi, &g_Icm456x, &g_Spi, nullptr, nullptr, "XIotFusion, ICM45686_S"},
-	{&g_XiotFusion, &g_Icm456x, &g_I2c, &g_Icm456x, &g_I2c, &g_Ak09940, g_Icm456x, "XIotFusion, ICM45686_I"},
-	{&g_XiotFusion, &g_Bmi270, &g_Spi, &g_Bmi270, &g_Spi, &g_Bmm350, &g_I2c, "XIotFusion, BMI270_S, BMM350_I"},
-	{&g_XiotFusion, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, "XIotFusion, BMI270_I, BMM350_I"},
-	{&g_XiotFusion, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, nullptr, nullptr, "XIotFusion, BMI323_S"},//&g_Bmm350, &g_I2c, 9},
-	{&g_XiotFusion, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, "XIotFusion, ICM20948_S"},
-	{&g_XiotFusion, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, "XIotFusion, ICM20948_I"},
+	{SW_FUSION, &g_Icm456x, &g_Spi, &g_Icm456x, &g_Spi, nullptr, nullptr, "ICM45686_S"},
+	{SW_FUSION, &g_Icm456x, &g_I2c, &g_Icm456x, &g_I2c, &g_Ak09940, g_Icm456x, "ICM45686_I"},
+	{SW_FUSION, &g_Bmi270, &g_Spi, &g_Bmi270, &g_Spi, &g_Bmm350, &g_I2c, "BMI270_S, BMM350_I"},
+	{SW_FUSION, &g_Bmi270, &g_I2c, &g_Bmi270, &g_I2c, &g_Bmm350, &g_I2c, "BMI270_I, BMM350_I"},
+	{SW_FUSION, &g_Bmi323, &g_Spi, &g_Bmi323, &g_Spi, nullptr, nullptr, "BMI323_S"},//&g_Bmm350, &g_I2c, 9},
+	{SW_FUSION, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, &g_Icm20948, &g_Spi, "ICM20948_S"},
+	{SW_FUSION, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, &g_Icm20948, &g_I2c, "ICM20948_I"},
 };
 
 static const size_t s_NbMotionDevices = sizeof(s_MotionDevices) / sizeof(MotionDevice_t);
